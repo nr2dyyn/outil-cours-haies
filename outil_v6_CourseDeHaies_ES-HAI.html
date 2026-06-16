@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outil ADP+ES v2 — Course de Haies — ES-HAI</title>
+<style>
+:root{
+  --bleu:#1a3a5c;--bleu2:#2563a8;--lbleu:#dbeafe;--bleu3:#eff6ff;
+  --vert:#166534;--lvert:#dcfce7;--vert2:#15803d;
+  --amber:#92400e;--lamber:#fef3c7;
+  --rouge:#991b1b;--lrouge:#fee2e2;
+  --gris:#374151;--lgris:#f3f4f6;--border:#d1d5db;
+  --white:#fff;--text:#111827;
+  --shadow:0 1px 4px rgba(0,0,0,.13);--r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,Arial,sans-serif;font-size:14px;color:var(--text);background:#eef2f7;min-height:100vh}
+h1{font-size:1.25rem}h2{font-size:1rem}h3{font-size:.9rem}
+input,select,button{font-family:inherit;font-size:inherit}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--border);padding:5px 7px;vertical-align:top;text-align:left}
+th{background:var(--lgris);font-weight:600}
+.hidden{display:none!important}
+
+/* Header */
+.app-header{background:linear-gradient(135deg,var(--bleu) 0%,#1e4d8c 100%);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px}
+.app-logo{font-size:2rem;line-height:1}
+.app-header h1{font-size:1.05rem;font-weight:700}
+.app-header p{font-size:.73rem;opacity:.75;margin-top:2px}
+
+/* Mode toggle */
+.mode-bar{background:#fff;border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:0}
+.mode-btn{padding:10px 18px;border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;font-size:.82rem;font-weight:700;color:#6b7280;white-space:nowrap;transition:all .18s}
+.mode-btn.active{color:var(--bleu2);border-bottom-color:var(--bleu2)}
+.mode-sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+
+/* Stepper */
+.stepper{display:flex;background:#f8fafc;border-bottom:1px solid var(--border);overflow-x:auto;padding:0 12px;gap:2px}
+.step-btn{flex:1;min-width:80px;padding:10px 8px;border:none;background:none;cursor:pointer;font-size:.75rem;font-weight:600;color:#9ca3af;border-bottom:3px solid transparent;transition:all .18s;white-space:nowrap}
+.step-btn.active{color:var(--bleu2);border-bottom-color:var(--bleu2)}
+.step-btn.done{color:var(--vert);border-bottom-color:#86efac}
+.step-btn:disabled{cursor:not-allowed;opacity:.38}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#e5e7eb;font-size:.68rem;margin-right:4px;font-weight:700}
+.step-btn.active .step-num{background:var(--bleu2);color:#fff}
+.step-btn.done   .step-num{background:var(--vert);color:#fff}
+
+/* Main */
+.main{max-width:1160px;margin:0 auto;padding:14px}
+.panel{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:15px;margin-bottom:12px}
+.panel-title{font-weight:700;color:var(--bleu);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;font-size:.9rem}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border:none;border-radius:var(--r);cursor:pointer;font-weight:600;font-size:.78rem;transition:opacity .15s,transform .1s}
+.btn:hover:not(:disabled){opacity:.85;transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn-primary{background:var(--bleu2);color:#fff}
+.btn-success{background:var(--vert);color:#fff}
+.btn-outline{background:#fff;color:var(--bleu);border:1.5px solid var(--bleu)}
+.btn-amber{background:#d97706;color:#fff}
+.btn-sm{padding:4px 9px;font-size:.72rem}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+
+/* Form */
+.fld{margin-bottom:8px}
+.fld label{display:block;font-size:.75rem;font-weight:600;color:var(--gris);margin-bottom:2px}
+.fld input,.fld select{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--bleu2)}
+.fld-row{display:grid;gap:8px}
+.fld-row.c2{grid-template-columns:1fr 1fr}
+.fld-row.c3{grid-template-columns:1fr 1fr 1fr}
+.fld-row.c4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:640px){.fld-row.c2,.fld-row.c3,.fld-row.c4{grid-template-columns:1fr 1fr}}
+
+/* Diagnostic saisie */
+.form-head{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;margin-bottom:3px;font-weight:600;font-size:.72rem;color:var(--gris)}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;margin-bottom:5px}
+.form-grid input{padding:5px 7px;border:1px solid var(--border);border-radius:3px;width:100%;font-size:.8rem}
+.form-grid input.err{border-color:#dc2626;background:#fff5f5}
+.csv-zone{border:2px dashed var(--border);border-radius:var(--r);padding:12px;text-align:center;color:#6b7280;cursor:pointer;transition:border-color .2s}
+.csv-zone:hover{border-color:var(--bleu2)}
+
+/* ES saisie */
+.es-head{display:grid;grid-template-columns:24px 1.5fr 72px 72px 72px 52px 52px 72px 52px 60px 82px;gap:4px;padding:4px 5px;background:var(--lgris);border-radius:4px;font-size:.68rem;font-weight:700;color:var(--gris);border:1px solid var(--border)}
+.es-row{display:grid;grid-template-columns:24px 1.5fr 72px 72px 72px 52px 52px 72px 52px 60px 82px;gap:4px;padding:4px 5px;border-bottom:1px solid #f0f0f0;align-items:center}
+.es-row:nth-child(even){background:#fafafa}
+.es-row input,.es-row select{padding:4px 5px;border:1px solid var(--border);border-radius:3px;width:100%;font-size:.76rem}
+.es-row input.err{border-color:#dc2626;background:#fff5f5}
+@media(max-width:900px){.es-head{display:none}.es-row{grid-template-columns:1fr 1fr;gap:5px}}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:10px;font-size:.68rem;font-weight:700}
+.badge-A{background:var(--lrouge);color:var(--rouge)}
+.badge-B{background:var(--lamber);color:var(--amber)}
+.badge-C{background:var(--lvert);color:var(--vert)}
+.badge-info{background:var(--lbleu);color:var(--bleu2)}
+
+/* Tables résultats */
+.row-A td{background:#fff8f8}
+.row-B td{background:#fffdf0}
+.row-C td{background:#f6fef6}
+.lacune-tag{font-size:.68rem;background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:9px;display:inline-block}
+
+/* Stats cards */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:12px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:10px;text-align:center}
+.stat-val{font-size:1.45rem;font-weight:800;line-height:1}
+.stat-lbl{font-size:.66rem;color:#6b7280;margin-top:3px;line-height:1.3}
+.stat-A .stat-val{color:var(--rouge)}
+.stat-B .stat-val{color:var(--amber)}
+.stat-C .stat-val{color:var(--vert)}
+
+/* Barème */
+.bareme-table td{font-size:.72rem;text-align:center;padding:3px 5px}
+.bar-vert{background:var(--lvert)}
+.bar-amber{background:var(--lamber)}
+.bar-rouge{background:var(--lrouge)}
+
+/* Info box */
+.info-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--r);padding:9px 12px;font-size:.76rem;margin-bottom:10px}
+.info-box strong{color:#0369a1}
+
+/* Axes */
+.axe-item{border:1.5px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:7px;cursor:pointer;transition:border-color .2s}
+.axe-item:hover{border-color:var(--bleu2)}
+.axe-item.checked{border-color:var(--bleu2);background:#eff6ff}
+.axe-item label{display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+.axe-item input{margin-top:2px;flex-shrink:0}
+.axe-title{font-weight:700;font-size:.84rem}
+.axe-meta{font-size:.72rem;color:#6b7280;margin-top:2px;line-height:1.5}
+.pert-bar{height:5px;background:#e5e7eb;border-radius:3px;margin-top:4px}
+.pert-fill{height:5px;background:var(--bleu2);border-radius:3px}
+
+/* Slider */
+.slider-wrap{padding:10px 0}
+input[type=range]{width:100%;accent-color:var(--bleu2)}
+.slider-preview{background:var(--lgris);border-radius:var(--r);padding:9px 12px;margin-top:8px;font-size:.8rem}
+.seq-row{display:flex;gap:7px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--border)}
+.seq-num{background:var(--bleu);color:#fff;border-radius:4px;padding:2px 6px;font-size:.7rem;font-weight:700;flex-shrink:0}
+
+/* Planification */
+.seq-block{border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.seq-head{background:var(--bleu);color:#fff;padding:8px 12px;font-weight:700;font-size:.84rem}
+.seance-row{display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr 1fr;gap:5px;padding:5px;border-bottom:1px solid #f0f0f0;font-size:.72rem}
+.seance-row:last-child{border-bottom:none}
+.seance-num{font-weight:800;color:var(--bleu);text-align:center}
+.groupe-A{background:#fff5f5;padding:3px 5px;border-radius:3px}
+.groupe-B{background:#fffbeb;padding:3px 5px;border-radius:3px}
+.groupe-C{background:#f0fdf4;padding:3px 5px;border-radius:3px}
+.indicatif{font-size:.68rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:3px;padding:3px 7px;margin:3px 5px 1px;color:#0369a1}
+.ind-label{font-size:.6rem;color:#9ca3af}
+.resume-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:var(--r);padding:12px;margin-top:12px;font-size:.78rem}
+
+/* Extraction box */
+.extract-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--r);padding:10px;margin-bottom:12px;font-size:.74rem}
+.extract-box h3{color:#0369a1;margin-bottom:5px;font-size:.82rem}
+.extract-box ul{padding-left:14px;line-height:1.7}
+
+
+/* ── Module photo ── */
+.photo-zone{border:2px dashed #93c5fd;border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;transition:all .2s;background:#f0f9ff;position:relative;margin-bottom:8px}
+.photo-zone:hover{border-color:var(--bleu2);background:#dbeafe}
+.photo-zone.has-photo{border-style:solid;border-color:var(--vert);background:#f0fdf4}
+.photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-icon{font-size:1.5rem;display:block;margin-bottom:4px}
+.photo-label{font-size:.76rem;font-weight:600;color:#1d4ed8}
+.photo-label.ok{color:var(--vert)}
+.photo-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;min-height:0}
+.photo-thumb{position:relative;width:100px;height:80px;border-radius:4px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;cursor:zoom-in}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .thumb-del{position:absolute;top:2px;right:2px;background:rgba(220,38,38,.88);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1}
+.photo-thumb .thumb-lbl{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:.6rem;padding:2px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.api-info-box{padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:4px;font-size:.72rem;color:#92400e;margin-bottom:8px}
+.ocr-panel{background:#fff;border:1.5px solid #93c5fd;border-radius:var(--r);padding:12px;margin-top:4px;display:none}
+.ocr-panel.visible{display:block}
+.ocr-status{font-size:.75rem;padding:7px 10px;border-radius:4px;margin-top:8px}
+.ocr-status.loading{background:#fef3c7;color:#92400e}
+.ocr-status.done{background:#dcfce7;color:#166534}
+.ocr-status.error{background:#fee2e2;color:#991b1b}
+.ocr-val{padding:3px 5px;border:1px solid var(--border);border-radius:3px;text-align:center;font-size:.75rem;width:100%}
+.ocr-val.ok{border-color:var(--vert);background:#f0fdf4}
+.photo-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.photo-modal img{max-width:92vw;max-height:92vh;border-radius:8px;box-shadow:0 4px 32px rgba(0,0,0,.6)}
+
+
+/* ── Graphique progression ── */
+.chart-wrap{position:relative;height:220px;margin:10px 0}
+.chart-bar-group{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.chart-bar-di{background:#9ca3af;border-radius:3px 3px 0 0;transition:height .4s}
+.chart-bar-es{border-radius:3px 3px 0 0;transition:height .4s,background .3s}
+.chart-label{font-size:.62rem;color:var(--gris);margin-top:3px;text-align:center;max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Sauvegarde ── */
+.save-indicator{position:fixed;bottom:14px;right:16px;font-size:.72rem;padding:5px 10px;border-radius:20px;background:var(--lvert);color:var(--vert);font-weight:700;opacity:0;transition:opacity .5s;pointer-events:none;z-index:999}
+.save-indicator.show{opacity:1}
+
+/* ── Fiche individuelle ── */
+.fiche-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:8000;display:flex;align-items:center;justify-content:center;padding:16px}
+.fiche-modal{background:#fff;border-radius:var(--r);width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.fiche-header{background:var(--bleu);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-radius:var(--r) var(--r) 0 0}
+.fiche-body{padding:16px 18px}
+.fiche-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.fiche-cell{background:var(--lgris);border-radius:4px;padding:8px 10px;text-align:center}
+.fiche-cell .fc-val{font-size:1.2rem;font-weight:800;color:var(--bleu2)}
+.fiche-cell .fc-lbl{font-size:.68rem;color:var(--gris)}
+.fiche-delta{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:4px;margin-bottom:12px;font-weight:700;font-size:.9rem}
+.fiche-delta.pos{background:var(--lvert);color:var(--vert)}
+.fiche-delta.neg{background:var(--lrouge);color:var(--rouge)}
+.fiche-delta.neu{background:var(--lgris);color:var(--gris)}
+.fiche-comment{width:100%;min-height:70px;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:.82rem;resize:vertical;margin-top:6px}
+.fiche-nav{display:flex;gap:8px;margin-top:12px;justify-content:center}
+
+/* ── Alertes aberrantes ── */
+.alert-cell{position:relative}
+.alert-tag{font-size:.64rem;color:#d97706;font-weight:700}
+.warn-icon{color:#d97706;font-size:.85rem;cursor:help}
+
+/* ── Commentaire élève ── */
+.btn-comment{background:none;border:none;cursor:pointer;font-size:.82rem;color:#6b7280;padding:2px 4px}
+.btn-comment:hover{color:var(--bleu2)}
+.comment-bubble{position:absolute;background:#fff;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:.76rem;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15);min-width:180px}
+
+/* ── Signature ── */
+.sig-canvas{border:1.5px dashed var(--border);border-radius:4px;cursor:crosshair;display:block;touch-action:none}
+.sig-canvas.signed{border-color:var(--vert)}
+
+/* ── QR code ── */
+.qr-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center}
+.qr-box{background:#fff;border-radius:var(--r);padding:24px;text-align:center;max-width:300px}
+
+/* ── Mode nuit ── */
+body.dark{background:#111827;color:#e5e7eb}
+body.dark .panel{background:#1f2937;box-shadow:none}
+body.dark .app-header{background:#111827}
+body.dark th{background:#374151;color:#e5e7eb}
+body.dark td{color:#e5e7eb}
+body.dark .stat-card{background:#1f2937;border-color:#374151}
+body.dark .es-row:nth-child(even){background:#1a2535}
+body.dark .fiche-modal{background:#1f2937;color:#e5e7eb}
+body.dark .fiche-cell{background:#374151}
+body.dark input,body.dark select,body.dark textarea{background:#374151;color:#e5e7eb;border-color:#4b5563}
+
+/* ── PDF / Historique ── */
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:4px;margin-bottom:6px;font-size:.8rem}
+.hist-meta{color:var(--gris);font-size:.72rem}
+
+/* Print */
+@media print{
+  .mode-bar,.stepper,.btn-row,.btn,.csv-zone,.form-grid,.form-head,
+  .axe-item input,.slider-wrap>input,.app-header p,.no-print{display:none!important}
+  .panel{box-shadow:none}
+  body{background:#fff;font-size:11px}
+  .step-panel:not(.active),.mode-panel:not(.active){display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo">🏃</div>
+  <div>
+    <h1>Outil ADP+ES v2 — Course de Haies · ES-HAI</h1>
+    <p>ADP 2026 · CRMEF Souss-Massa / Inezgane · BOUARGANE · Diagnostic didactique + Évaluation Sommative /20</p>
+  </div>
+</div>
+
+<!-- MODE TOGGLE -->
+<div class="mode-bar">
+  <button class="mode-btn active" onclick="switchMode('diag')">🔍 Diagnostic &amp; Planification</button>
+  <div class="mode-sep"></div>
+  <button class="mode-btn" onclick="switchMode('es')">📝 Évaluation Sommative /20</button>
+  <div class="mode-sep"></div>
+  <button class="mode-btn" onclick="switchMode('bareme')">📋 Barème officiel</button>
+  <div class="mode-sep"></div>
+  <button class="mode-btn" onclick="switchMode('historique')">📁 Historique</button>
+  <div style="flex:1"></div>
+  <button class="mode-btn" onclick="toggleNuit()" id="btn-nuit" title="Mode nuit">☀️</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODE DIAGNOSTIC — 4 étapes
+══════════════════════════════════════════════════ -->
+<div class="mode-panel active" id="mode-diag">
+  <div class="stepper" id="stepper">
+    <button class="step-btn active" data-step="1" onclick="goStep(1)"><span class="step-num">1</span>Diagnostic</button>
+    <button class="step-btn" data-step="2" disabled onclick="goStep(2)"><span class="step-num">2</span>Axes</button>
+    <button class="step-btn" data-step="3" disabled onclick="goStep(3)"><span class="step-num">3</span>Paramétrage</button>
+    <button class="step-btn" data-step="4" disabled onclick="goStep(4)"><span class="step-num">4</span>Planification</button>
+  </div>
+
+  
+<!-- Indicateur sauvegarde -->
+<div class="save-indicator" id="save-indicator">✓ Sauvegardé</div>
+
+<!-- Overlay fiche individuelle -->
+<div class="fiche-overlay hidden" id="fiche-overlay" onclick="closeFiche(event)">
+  <div class="fiche-modal" onclick="event.stopPropagation()">
+    <div class="fiche-header">
+      <span id="fiche-titre" style="font-weight:700;font-size:1rem;"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4);" onclick="ficheNav(-1)">← Précédent</button>
+        <button class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,.4);" onclick="ficheNav(1)">Suivant →</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;" onclick="closeFiche()">✕</button>
+      </div>
+    </div>
+    <div class="fiche-body" id="fiche-body"></div>
+  </div>
+</div>
+
+<!-- Overlay QR code -->
+<div class="qr-overlay hidden" id="qr-overlay" onclick="closeQR()">
+  <div class="qr-box" onclick="event.stopPropagation()">
+    <div style="font-weight:700;margin-bottom:12px;color:var(--bleu);">📲 Partager la session</div>
+    <canvas id="qr-canvas" width="200" height="200"></canvas>
+    <div id="qr-url" style="font-size:.68rem;color:#6b7280;margin-top:8px;word-break:break-all;max-height:60px;overflow:hidden;"></div>
+    <div class="btn-row" style="justify-content:center;margin-top:10px;">
+      <button class="btn btn-outline btn-sm" onclick="copyQRUrl()">📋 Copier le lien</button>
+      <button class="btn btn-outline btn-sm" onclick="closeQR()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+    <div class="extract-box">
+      <h3>✅ Données extraites — ES-HAI (CRMEF 2024 + DNB B.O. n°5/2012)</h3>
+      <ul>
+        <li><strong>OBS-01</strong> Départ &amp; approche 1ère haie · <strong>OBS-02</strong> Impulsion/Franchissement/Reprise · <strong>OBS-03</strong> Course inter-obstacles</li>
+        <li><strong>Seuils :</strong> A = 0–4/10 · B = 5–7/10 · C = 8–10/10 · <strong>Degrés :</strong> Coureur Sauteur / Coordonné / Accélérateur</li>
+        <li><strong>Axes :</strong> AXE1 Rythmique 3 appuis · AXE2 Impulsion/attaque · AXE3 Continuité/alignement (+ 3 sous-axes)</li>
+        <li><strong>Formule ES :</strong> NOTE /20 = (C1 + C2) × 0,8 + Bonus C3 · Plafonnée à 20/20</li>
+      </ul>
+    </div>
+
+    <!-- ÉTAPE 1 -->
+    <div class="step-panel active" id="panel-1">
+      <div class="panel">
+        <div class="panel-title">📋 Informations du groupe</div>
+        <div class="fld-row c4">
+          <div class="fld"><label>APS</label><input type="text" id="aps-name" value="Course de Haies"></div>
+          <div class="fld"><label>Groupe / Classe</label><input type="text" id="groupe" placeholder="Ex: 3ème B"></div>
+          <div class="fld"><label>Niveau scolaire</label><input type="text" id="niveau" placeholder="Ex: 3ème collège"></div>
+          <div class="fld"><label>Date</label><input type="date" id="date-eval"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📂 Import CSV terrain (optionnel)</div>
+        <div class="csv-zone" onclick="document.getElementById('csv-input').click()">
+          📁 Cliquer pour charger un fichier CSV terrain (format ADP 2026)<br>
+          <small>Colonnes : Nom_Eleve · OBS01_X · OBS02_X · OBS03_X</small>
+        </div>
+        <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="loadCSV(this)">
+        <div id="csv-status" style="font-size:.76rem;margin-top:6px;"></div>
+      </div>
+
+
+      <!-- PHOTO FICHE DIAGNOSTIC -->
+      <div class="panel">
+        <div class="panel-title">&#128247; Photo de la fiche terrain (optionnel)</div>
+        <p style="font-size:.76rem;color:#6b7280;margin-bottom:8px;">Photographiez votre fiche d'observation remplie a la main. L'IA lit les scores et les transfère automatiquement.</p>
+        <div class="api-info-box">
+          <strong>&#128273; Cle API requise</strong> &mdash; <a href="https://console.anthropic.com" target="_blank" style="color:var(--bleu2)">console.anthropic.com</a> &rarr; Copier votre cle sk-ant-...
+          &nbsp;<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;" onclick="resetApiKey()">Changer la cle</button>
+        </div>
+        <div class="photo-zone" id="diag-dz" ondragover="ev.preventDefault()" ondrop="dropPhoto(event,'diag')" ondragleave="this.style.borderColor=''">
+          <input type="file" accept="image/*" multiple onchange="handlePhotoInput(this,'diag')">
+          <span class="photo-icon">&#128247;</span>
+          <span class="photo-label" id="diag-ph-lbl">Cliquer, glisser-deposer ou prendre une photo</span>
+          <div style="font-size:.67rem;color:#6b7280;margin-top:2px;">JPEG &middot; PNG &middot; HEIC &middot; WebP</div>
+        </div>
+        <div class="photo-thumbs" id="diag-thumbs"></div>
+        <div class="ocr-panel" id="diag-ocr">
+          <div style="font-weight:700;font-size:.84rem;margin-bottom:8px;color:var(--bleu);">Donnees reconnues &mdash; Verifier avant d'appliquer</div>
+          <div id="diag-ocr-lines"></div>
+          <div class="ocr-status hidden" id="diag-ocr-st"></div>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="btn btn-success btn-sm" id="diag-apply-btn" disabled onclick="applyOCR('diag')">Appliquer dans la grille</button>
+            <button class="btn btn-outline btn-sm" onclick="lancerOCR('diag')">Relancer la lecture</button>
+            <button class="btn btn-outline btn-sm" onclick="clearPhotos('diag')">Effacer les photos</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">✏️ Saisie manuelle (0–10 par observable)</div>
+        <div class="form-head">
+          <span>Prénom</span>
+          <span>OBS-01<br><small>Départ/Approche</small></span>
+          <span>OBS-02<br><small>Franchissement</small></span>
+          <span>OBS-03<br><small>Inter-obstacles</small></span>
+        </div>
+        <div id="form-rows"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" onclick="addRow()">+ Ajouter</button>
+          <button class="btn btn-outline btn-sm" onclick="removeLastRow()">− Supprimer</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="analyser()">🔍 Analyser la classe</button>
+        <button class="btn btn-outline" onclick="exportCSVDiag()">⬇ Exporter CSV</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Imprimer</button>
+      </div>
+
+      <div id="resultats" class="hidden">
+        <div class="panel" style="margin-top:12px;">
+          <div class="panel-title">📊 Bilan de classe</div>
+          <div class="stat-cards" id="bilan-cards"></div>
+          <div id="bilan-obs" style="margin-top:10px;"></div>
+          <div id="bilan-decision" style="margin-top:10px;padding:9px;border-radius:var(--r);font-weight:600;font-size:.84rem;"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">🧑‍🎓 Tableau individuel</div>
+          <div style="overflow-x:auto;">
+            <table id="table-individuel">
+              <thead><tr><th>Rang</th><th>Prénom</th><th>OBS-01</th><th>OBS-02</th><th>OBS-03</th><th>Moy /10</th><th>/20</th><th>Profil</th><th>Détail</th><th>Lacune(s)</th><th>Axe prioritaire</th><th>SA</th></tr></thead>
+              <tbody id="tbody-individuel"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">👥 Groupes de besoin</div>
+          <div id="groupes-besoin"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-success" onclick="goStep(2)">Passer à l'étape 2 — Axes →</button>
+          <button class="btn btn-amber" onclick="switchMode('es');transfererDiagES()">📝 Passer à l'Évaluation Sommative →</button>
+        </div>
+      </div>
+    </div><!-- /panel-1 -->
+
+    <!-- ÉTAPE 2 -->
+    <div class="step-panel hidden" id="panel-2">
+      <div class="panel">
+        <div class="panel-title">🎯 Sélection des axes prioritaires (3 ou 4)</div>
+        <p style="font-size:.77rem;color:#6b7280;margin-bottom:10px;">Axes extraits du référentiel ES-HAI (TD2). Classés par pertinence réelle.</p>
+        <div id="axes-list"></div>
+        <div id="axes-msg" style="font-size:.77rem;color:#dc2626;margin-top:7px;"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(1)">← Retour</button>
+        <button class="btn btn-success" id="btn-etape3" disabled onclick="goStep(3)">Paramétrer le cycle →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 -->
+    <div class="step-panel hidden" id="panel-3">
+      <div class="panel">
+        <div class="panel-title">🔧 Paramétrage du cycle</div>
+        <label style="font-weight:600;font-size:.86rem;">Nombre de séances</label>
+        <div class="slider-wrap">
+          <input type="range" id="slider-seances" min="6" max="10" value="8" oninput="updateSlider()">
+          <div style="display:flex;justify-content:space-between;font-size:.7rem;color:#6b7280;margin-top:1px;">
+            <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+          </div>
+          <div style="text-align:center;font-size:1.05rem;font-weight:700;color:var(--bleu2);margin-top:7px;" id="slider-label">Cycle de 8 séances</div>
+        </div>
+        <div class="slider-preview" id="slider-preview"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(2)">← Retour</button>
+        <button class="btn btn-success" onclick="genererPlanif()">Générer la planification →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 4 -->
+    <div class="step-panel hidden" id="panel-4">
+      <div id="planif-content"></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="goStep(3)">← Modifier</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Imprimer</button>
+        <button class="btn btn-amber" onclick="switchMode('es');transfererDiagES()">📝 Évaluation Sommative →</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /mode-diag -->
+
+<!-- ══════════════════════════════════════════════════
+     MODE ES — ÉVALUATION SOMMATIVE
+══════════════════════════════════════════════════ -->
+<div class="mode-panel hidden" id="mode-es">
+  <div class="main">
+
+    <!-- Infos groupe ES -->
+    <div class="panel">
+      <div class="panel-title">📋 Identification — Évaluation Sommative</div>
+      <div class="fld-row c4">
+        <div class="fld"><label>Établissement</label><input type="text" id="es-etab" placeholder="Établissement"></div>
+        <div class="fld"><label>Classe</label><input type="text" id="es-classe" placeholder="Ex: 3ème B"></div>
+        <div class="fld"><label>Niveau scolaire</label>
+          <select id="es-niveau">
+            <option value="1AC">1ère AC</option><option value="2AC">2ème AC</option>
+            <option value="3AC" selected>3ème AC</option><option value="TC">T.C Lycée</option>
+            <option value="1BAC">1ère BAC</option><option value="2BAC">2ème BAC</option>
+            <option value="DNB">Réf. DNB propre</option>
+          </select>
+        </div>
+        <div class="fld"><label>Date ES</label><input type="date" id="es-date"></div>
+      </div>
+      <div class="fld-row c3">
+        <div class="fld"><label>Genre de la classe</label>
+          <select id="es-genre-classe">
+            <option value="G">Garçons</option><option value="F">Filles</option><option value="M">Mixte</option>
+          </select>
+        </div>
+        <div class="fld"><label>Enseignant</label><input type="text" id="es-enseignant"></div>
+        <div class="fld"><label>Formateur</label><input type="text" id="es-formateur" value="BOUARGANE"></div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Formule ES-HAI :</strong> NOTE /20 = (C1 chrono/10 + C2 tech/10) × 0,8 + Bonus progression DI→ES /4 · Plafonnée à 20/20
+      &nbsp;·&nbsp; C1 TYPE 2 (barème genre) · C2 TYPE 1 (score /12 → /10)
+    </div>
+
+
+    <!-- PHOTO FICHE ES -->
+    <div class="panel">
+      <div class="panel-title">&#128247; Photo de la fiche ES remplie (optionnel)</div>
+      <p style="font-size:.76rem;color:#6b7280;margin-bottom:8px;">Photographiez la fiche ES remplie a la main. L'IA lit les chronos, scores et bonus puis remplit la grille automatiquement.</p>
+      <div class="api-info-box">
+        <strong>&#128273; Cle API requise</strong> &mdash; <a href="https://console.anthropic.com" target="_blank" style="color:var(--bleu2)">console.anthropic.com</a> &rarr; Copier votre cle sk-ant-...
+        &nbsp;<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;" onclick="resetApiKey()">Changer la cle</button>
+      </div>
+      <div class="photo-zone" id="es-dz" ondragover="event.preventDefault()" ondrop="dropPhoto(event,'es')" ondragleave="this.style.borderColor=''">
+        <input type="file" accept="image/*" multiple onchange="handlePhotoInput(this,'es')">
+        <span class="photo-icon">&#128247;</span>
+        <span class="photo-label" id="es-ph-lbl">Cliquer, glisser-deposer ou prendre une photo</span>
+        <div style="font-size:.67rem;color:#6b7280;margin-top:2px;">JPEG &middot; PNG &middot; HEIC &middot; WebP</div>
+      </div>
+      <div class="photo-thumbs" id="es-thumbs"></div>
+      <div class="ocr-panel" id="es-ocr">
+        <div style="font-weight:700;font-size:.84rem;margin-bottom:8px;color:var(--bleu);">Donnees reconnues &mdash; Verifier avant d'appliquer</div>
+        <div id="es-ocr-lines"></div>
+        <div class="ocr-status hidden" id="es-ocr-st"></div>
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn btn-success btn-sm" id="es-apply-btn" disabled onclick="applyOCR('es')">Appliquer dans la grille ES</button>
+          <button class="btn btn-outline btn-sm" onclick="lancerOCR('es')">Relancer la lecture</button>
+          <button class="btn btn-outline btn-sm" onclick="clearPhotos('es')">Effacer les photos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saisie élèves ES -->
+    <div class="panel">
+      <div class="panel-title">✏️ Saisie élèves — DI &amp; ES</div>
+      <div class="es-head">
+        <span>#</span><span>Prénom / NOM</span>
+        <span>DI Chrono</span><span>DI Tech/12</span>
+        <span>ES Chrono</span><span>Genre</span>
+        <span>C1/10</span><span>ES Tech/12</span>
+        <span>C2/10</span><span>Bonus C3/4</span>
+        <span>NOTE /20</span>
+        <span>Notes</span>
+      </div>
+      <div id="es-rows"></div>
+      <div class="btn-row no-print">
+        <button class="btn btn-outline btn-sm" onclick="addEsRow()">+ Ajouter élève</button>
+        <button class="btn btn-outline btn-sm" onclick="removeLastEsRow()">− Supprimer</button>
+        <button class="btn btn-primary" onclick="calculerNotes()">⚡ Calculer toutes les notes</button>
+      </div>
+    </div>
+
+    <!-- Barème rapide C1 -->
+    <div class="panel">
+      <div class="panel-title">📋 Barème C1 — Lecture rapide</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <div style="font-weight:700;margin-bottom:5px;color:var(--bleu2);">Garçons — 60m</div>
+          <table class="bareme-table">
+            <tr><th>Chrono</th><th>C1/10</th><th>Degré</th></tr>
+            <tr class="bar-vert"><td>≤ 16"</td><td><b>10</b></td><td>Accélérateur</td></tr>
+            <tr class="bar-vert"><td>16"1–17"</td><td>9</td><td>Accélérateur</td></tr>
+            <tr class="bar-vert"><td>17"1–18"</td><td>8</td><td>Accélérateur</td></tr>
+            <tr class="bar-amber"><td>18"1–19"</td><td>7</td><td>Coordonné</td></tr>
+            <tr class="bar-amber"><td>19"1–20"</td><td>6</td><td>Coordonné</td></tr>
+            <tr class="bar-amber"><td>20"1–22"</td><td>5</td><td>Coordonné</td></tr>
+            <tr class="bar-rouge"><td>22"1–24"</td><td>4</td><td>Sauteur</td></tr>
+            <tr class="bar-rouge"><td>24"1–26"</td><td>3</td><td>Sauteur</td></tr>
+            <tr class="bar-rouge"><td>26"1–28"</td><td>2</td><td>Sauteur</td></tr>
+            <tr class="bar-rouge"><td>&gt; 28"</td><td>0</td><td>Sauteur</td></tr>
+          </table>
+        </div>
+        <div>
+          <div style="font-weight:700;margin-bottom:5px;color:#db2777;">Filles — 60m</div>
+          <table class="bareme-table">
+            <tr><th>Chrono</th><th>C1/10</th><th>Degré</th></tr>
+            <tr class="bar-vert"><td>≤ 18"5</td><td><b>10</b></td><td>Accélérateur</td></tr>
+            <tr class="bar-vert"><td>18"6–20"</td><td>9</td><td>Accélérateur</td></tr>
+            <tr class="bar-vert"><td>20"1–21"5</td><td>8</td><td>Accélérateur</td></tr>
+            <tr class="bar-amber"><td>21"6–23"</td><td>7</td><td>Coordonné</td></tr>
+            <tr class="bar-amber"><td>23"1–24"5</td><td>6</td><td>Coordonné</td></tr>
+            <tr class="bar-amber"><td>24"6–26"</td><td>5</td><td>Coordonné</td></tr>
+            <tr class="bar-rouge"><td>26"1–27"5</td><td>4</td><td>Sauteur</td></tr>
+            <tr class="bar-rouge"><td>27"6–29"</td><td>3</td><td>Sauteur</td></tr>
+            <tr class="bar-rouge"><td>29"1–31"</td><td>2</td><td>Sauteur</td></tr>
+            <tr class="bar-rouge"><td>&gt; 31"</td><td>0</td><td>Sauteur</td></tr>
+          </table>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-weight:700;margin-bottom:5px;color:var(--bleu);">Conversion C2 — Score /12 → Note /10</div>
+        <table class="bareme-table">
+          <tr><th>Score /12</th><th>Note /10</th><th>Degré</th></tr>
+          <tr class="bar-vert"><td>11–12</td><td><b>9–10</b></td><td>Accélérateur</td></tr>
+          <tr class="bar-vert"><td>9–10</td><td>8</td><td>Accélérateur</td></tr>
+          <tr class="bar-amber"><td>8</td><td>7</td><td>Coordonné</td></tr>
+          <tr class="bar-amber"><td>6–7</td><td>6</td><td>Coordonné</td></tr>
+          <tr class="bar-amber"><td>5</td><td>5</td><td>Coordonné</td></tr>
+          <tr class="bar-rouge"><td>3–4</td><td>4</td><td>Sauteur</td></tr>
+          <tr class="bar-rouge"><td>2–3</td><td>3</td><td>Sauteur</td></tr>
+          <tr class="bar-rouge"><td>1</td><td>2</td><td>Sauteur</td></tr>
+          <tr class="bar-rouge"><td>0</td><td>0–1</td><td>Sauteur</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Résultats ES -->
+    <div id="es-res-vide" class="panel">
+      <div class="panel-title">📊 Résultats &amp; Notes</div>
+      <p style="color:#6b7280;text-align:center;padding:16px;">Saisissez les données et cliquez sur "Calculer toutes les notes".</p>
+    </div>
+    <div id="es-res-content" class="hidden">
+      <div class="panel">
+        <div class="panel-title">📈 Bilan statistique</div>
+        <div class="stat-cards" id="es-stat-cards"></div>
+        <div id="es-repartition" style="margin-top:8px;"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🧑‍🎓 Tableau de notes complet</div>
+        <div class="btn-row no-print">
+          <button class="btn btn-outline btn-sm" onclick="trierPar('note')">Trier par note</button>
+          <button class="btn btn-outline btn-sm" onclick="trierPar('prenom')">Trier par prénom</button>
+          <button class="btn btn-success btn-sm" onclick="exportCSVNotes()">⬇ Exporter CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Imprimer</button>
+        </div>
+        <div style="overflow-x:auto;margin-top:8px;">
+          <table id="table-notes">
+            <thead>
+              <tr>
+                <th>Rang</th><th>Prénom / NOM</th><th>G</th>
+                <th>DI Chrono</th><th>DI T/12</th>
+                <th>ES Chrono</th><th>C1/10</th>
+                <th>ES T/12</th><th>C2/10</th>
+                <th>ΔChrono</th><th>ΔTech</th>
+                <th>C3/4</th><th>×0,8</th>
+                <th style="background:var(--lbleu);">NOTE /20</th>
+                <th>Mention</th><th>Degré</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-notes"></tbody>
+            <tfoot id="tfoot-notes"></tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📋 Relevé de notes — Format affichage</div>
+        <div id="releve-notes" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
+    <!-- Simulateur -->
+    <div class="panel">
+      <div class="panel-title">🔢 Simulateur de note individuelle</div>
+      <div class="fld-row c3">
+        <div class="fld"><label>Chrono ES (ex: 22.5)</label><input type="number" id="sim-chrono" step="0.1" min="5" max="120" placeholder="secondes" oninput="simulerNote()"></div>
+        <div class="fld"><label>Genre</label><select id="sim-genre" onchange="simulerNote()"><option value="G">Garçon</option><option value="F">Fille</option></select></div>
+        <div class="fld"><label>Score technique ES /12</label><input type="number" id="sim-tech" step="1" min="0" max="12" placeholder="0–12" oninput="simulerNote()"></div>
+      </div>
+      <div class="fld-row c3">
+        <div class="fld"><label>Chrono DI (optionnel)</label><input type="number" id="sim-chrono-di" step="0.1" min="5" max="120" placeholder="secondes" oninput="simulerNote()"></div>
+        <div class="fld"><label>Score technique DI /12</label><input type="number" id="sim-tech-di" step="1" min="0" max="12" placeholder="0–12" oninput="simulerNote()"></div>
+        <div class="fld"><label>Bonus appréciation</label>
+          <select id="sim-appre" onchange="simulerNote()"><option value="0">0 — Pas de bonus</option><option value="1">+1 — Progression exemplaire</option></select>
+        </div>
+      </div>
+      <div id="sim-result" style="margin-top:10px;"></div>
+    </div>
+
+  </div>
+
+    <!-- Signature + QR -->
+    <div class="panel no-print" id="es-tools-panel" style="display:none;">
+      <div class="panel-title">🖊️ Outils de validation</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-weight:600;font-size:.84rem;margin-bottom:8px;">Signature de l'enseignant</div>
+          <canvas id="sig-canvas" class="sig-canvas" width="280" height="80"></canvas>
+          <div class="btn-row" style="margin-top:6px;">
+            <button class="btn btn-outline btn-sm" onclick="clearSig()">Effacer</button>
+            <button class="btn btn-sm" style="background:var(--lgris);" onclick="saveSig()">Valider ✓</button>
+          </div>
+          <div id="sig-status" style="font-size:.72rem;color:var(--vert);margin-top:4px;"></div>
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:.84rem;margin-bottom:8px;">Partager la session</div>
+          <p style="font-size:.76rem;color:#6b7280;margin-bottom:8px;">Générez un QR code pour ouvrir cette session sur un autre appareil ou l'envoyer au formateur.</p>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="genererQR()">📲 Générer QR code</button>
+            <button class="btn btn-outline" onclick="exporterPDF()">📄 Export PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+</div><!-- /mode-es -->
+
+
+<!-- ══ MODE HISTORIQUE ══════════════════════════════════════ -->
+<div class="mode-panel hidden" id="mode-historique">
+  <div class="main">
+    <div class="panel">
+      <div class="panel-title">📁 Historique des cycles &mdash; Sessions sauvegardées</div>
+      <div class="btn-row no-print" style="margin-bottom:12px;">
+        <button class="btn btn-primary" onclick="sauvegarderSession()">💾 Sauvegarder la session actuelle</button>
+        <button class="btn btn-outline" onclick="exportAllCSV()">⬇ Exporter toutes les sessions CSV</button>
+      </div>
+      <div id="hist-liste"><p style="color:#6b7280;text-align:center;padding:20px;">Aucune session sauvegardée. Allez dans Évaluation Sommative, calculez les notes, puis revenez ici sauvegarder.</p></div>
+    </div>
+    <div class="panel" id="hist-compare-panel" style="display:none;">
+      <div class="panel-title">📈 Comparaison des sessions</div>
+      <div id="hist-chart-wrap" style="overflow-x:auto;padding:10px 0;"></div>
+      <div id="hist-compare-table" style="margin-top:12px;overflow-x:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODE BARÈME
+══════════════════════════════════════════════════ -->
+<div class="mode-panel hidden" id="mode-bareme">
+  <div class="main">
+    <div class="panel">
+      <div class="panel-title">📋 Barème officiel CRMEF 2024 — Tous les niveaux</div>
+      <div id="bareme-all"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// RÉFÉRENTIEL
+// ══════════════════════════════════════════════════
+var REF = {
+  observables:[
+    {id:"OBS-01",nom:"D\u00e9part & approche 1\u00e8re haie"},
+    {id:"OBS-02",nom:"Impulsion \u00b7 Franchissement \u00b7 Reprise"},
+    {id:"OBS-03",nom:"Course inter-obstacles"}
+  ],
+  seuils:{B:5,C:8},
+  axes:[
+    {id:"AXE1",titre:"Construire et automatiser la rythmique de course inter-haies (3 appuis stables)",obs:"OBS-03",
+     justif:"Lacune dominante N1-7 \u2014 bloque 4/8 capacit\u00e9s N2",cible:"A et B vers N2-7 et N2-8",
+     indicateur:"L\u2019\u00e9l\u00e8ve maintient 3 appuis r\u00e9guliers entre au moins 3 haies sur 5",sa:"SA-A1"},
+    {id:"AXE2",titre:"Construire l\u2019impulsion loin de la haie et l\u2019attaque genou haut dans l\u2019axe",obs:"OBS-02",
+     justif:"N1-6 partielle chez B, absente chez A. Code C2a. Bloque N2-4 et N2-5",cible:"A et B vers N2-4",
+     indicateur:"L\u2019\u00e9l\u00e8ve impulse loin avec le genou haut dans l\u2019axe sur au moins 3 haies",sa:"SA-B1"},
+    {id:"AXE3",titre:"Stabiliser la continuit\u00e9 de course et l\u2019alignement corporel",obs:"OBS-01",
+     justif:"Conduites 3 et 4 \u2014 N1-4 et N1-5 partielles chez B. Codes C2c et C2d",cible:"B vers N2-5 et N2-6",
+     indicateur:"L\u2019\u00e9l\u00e8ve encha\u00eene franchissement et reprise sans rupture sur 4 haies sur 5",sa:"SA-B1"},
+    {id:"AXE4",titre:"Dissocier l\u2019action des deux jambes sur la haie pour la reprise active",obs:"OBS-02",
+     justif:"N2-5 : accessible apr\u00e8s Axe 2. Cible B avanc\u00e9s et C",cible:"B avanc\u00e9s et C vers degr\u00e9 D",
+     indicateur:"L\u2019\u00e9l\u00e8ve produit une reprise active de la jambe d\u2019attaque sur 3 haies",sa:"SA-C1"},
+    {id:"AXE5",titre:"Coordonner les bras avec les jambes pour l\u2019\u00e9quilibre dynamique",obs:"OBS-01",
+     justif:"N2-6 : condition l\u2019alignement parfait. Pr\u00e9requis N1-3 + N1-5",cible:"B et C vers alignement",
+     indicateur:"L\u2019\u00e9l\u00e8ve utilise les bras en opposition active lors du franchissement",sa:"SA-C1"},
+    {id:"AXE6",titre:"Analyser sa performance et choisir le parcours optimal (pied d\u2019appel, 4 appuis)",obs:"OBS-03",
+     justif:"N2-8 : conditionne le bonus C3. N1-7 + N1-9 pr\u00e9requis",cible:"Tous les degr\u00e9s vers autonomie",
+     indicateur:"L\u2019\u00e9l\u00e8ve identifie son pied d\u2019appel et choisit le couloir de fa\u00e7on autonome",sa:"SA-C1"}
+  ],
+  sa:{
+    "SA-A1":{nom:"Rythme des appuis",desc:"Situations sur la construction du rythme inter-haies"},
+    "SA-B1":{nom:"Impulsion et attaque",desc:"Situations sur l\u2019impulsion loin et l\u2019attaque genou haut"},
+    "SA-C1":{nom:"Dissociation segmentaire",desc:"Situations sur la coordination bras-jambes"}
+  }
+};
+
+// Barèmes C1
+var BAREME_G=[{max:16,note:10},{max:17,note:9},{max:18,note:8},{max:19,note:7},{max:20,note:6},{max:22,note:5},{max:24,note:4},{max:26,note:3},{max:28,note:2},{max:999,note:0}];
+var BAREME_F=[{max:18.5,note:10},{max:20,note:9},{max:21.5,note:8},{max:23,note:7},{max:24.5,note:6},{max:26,note:5},{max:27.5,note:4},{max:29,note:3},{max:31,note:2},{max:999,note:0}];
+var CONV_TECH=[{min:11,max:12,note:9.5},{min:9,max:10,note:8},{min:8,max:8,note:7},{min:6,max:7,note:6},{min:5,max:5,note:5},{min:3,max:4,note:4},{min:2,max:3,note:3},{min:1,max:1,note:2},{min:0,max:0,note:0.5}];
+
+// ── Helpers notation ──────────────────────────────
+function noteC1(chr,g){var b=g==="F"?BAREME_F:BAREME_G;for(var i=0;i<b.length;i++)if(chr<=b[i].max)return b[i].note;return 0;}
+function noteC2(s12){var s=Math.max(0,Math.min(12,Math.round(parseFloat(s12))));for(var i=0;i<CONV_TECH.length;i++)if(s>=CONV_TECH[i].min&&s<=CONV_TECH[i].max)return CONV_TECH[i].note;return 0;}
+function calcC3(cdi,ces,tdi,tes,ap){var b=0,dc=null,dt=null;if(!isNaN(cdi)&&!isNaN(ces)&&cdi>0&&ces>0){dc=cdi-ces;if(dc>2)b+=2;}if(!isNaN(tdi)&&!isNaN(tes)&&tdi>=0&&tes>=0){dt=tes-tdi;if(dt>2)b+=1;}b+=(parseInt(ap)||0);return{bonus:Math.min(4,b),dChrono:dc,dTech:dt};}
+function calcNote(c1,c2,c3){return Math.min(20,Math.round(((c1+c2)*0.8+c3)*10)/10);}
+function degreC2(n){return n>=8?"C":n>=5?"B":"A";}
+function mention(n){return n>=16?"Tr\u00e8s Bien":n>=14?"Bien":n>=12?"Assez Bien":n>=10?"Passable":n>=8?"Insuffisant":"Tr\u00e8s Insuffisant";}
+function mentionColor(n){return n>=14?"var(--vert)":n>=10?"var(--amber)":"var(--rouge)";}
+function profil(v){return v>=REF.seuils.C?"C":v>=REF.seuils.B?"B":"A";}
+
+// ══════════════════════════════════════════════════
+// NAVIGATION MODES
+// ══════════════════════════════════════════════════
+function switchMode(id){
+  document.querySelectorAll(".mode-panel").forEach(function(p){p.classList.add("hidden");});
+  document.querySelectorAll(".mode-btn").forEach(function(b){b.classList.remove("active");});
+  document.getElementById("mode-"+id).classList.remove("hidden");
+  var idx={"diag":0,"es":1,"bareme":2,"historique":3};
+  var btns=document.querySelectorAll(".mode-btn");
+  if(btns[idx[id]!==undefined?idx[id]:0]) btns[idx[id]!==undefined?idx[id]:0].classList.add("active");
+  if(id==="historique") renderHistorique();
+}
+
+// ══════════════════════════════════════════════════
+// ÉTAPES DIAGNOSTIC
+// ══════════════════════════════════════════════════
+var eleves=[], axesChecked=[], nbSeances=8, currentStep=1;
+
+function goStep(n){
+  if(n===2&&eleves.length===0)return;
+  if(n>2&&eleves.length===0)return;
+  currentStep=n;
+  document.querySelectorAll(".step-panel").forEach(function(p){p.classList.add("hidden");});
+  document.getElementById("panel-"+n).classList.remove("hidden");
+  document.querySelectorAll(".step-btn").forEach(function(b){
+    var s=parseInt(b.dataset.step);
+    b.classList.toggle("active",s===n);
+    b.classList.toggle("done",s<n);
+    b.disabled=s>n&&s>2;
+  });
+  if(n===2)buildAxes();
+  if(n===3){updateSlider();document.querySelector("[data-step='3']").disabled=false;}
+  if(n===4)document.querySelector("[data-step='4']").disabled=false;
+  window.scrollTo(0,0);
+}
+
+// Lignes saisie diagnostic
+function initRows(c){var cont=document.getElementById("form-rows");cont.innerHTML="";for(var i=0;i<c;i++)addRow();}
+function addRow(){
+  var c=document.getElementById("form-rows"),n=c.children.length+1;
+  var d=document.createElement("div");d.className="form-grid";
+  d.innerHTML="<input type='text' placeholder='\u00c9l\u00e8ve "+n+"' class='prenom'>"+
+    "<input type='number' min='0' max='10' step='0.5' class='obs1' placeholder='0\u201310'>"+
+    "<input type='number' min='0' max='10' step='0.5' class='obs2' placeholder='0\u201310'>"+
+    "<input type='number' min='0' max='10' step='0.5' class='obs3' placeholder='0\u201310'>";
+  c.appendChild(d);
+}
+function removeLastRow(){var c=document.getElementById("form-rows");if(c.children.length>1)c.removeChild(c.lastChild);}
+
+// CSV import
+function loadCSV(input){
+  var f=input.files[0];if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var lines=e.target.result.split(/\r?\n/).filter(function(l){return l.trim();});
+    var headerIdx=-1,headers=[];
+    for(var i=0;i<lines.length;i++){if(lines[i].toLowerCase().includes("nom_eleve")){headerIdx=i;headers=lines[i].split(";").map(function(h){return h.trim();});break;}}
+    if(headerIdx<0){document.getElementById("csv-status").innerHTML="<span style='color:#dc2626'>Colonne Nom_Eleve non trouv\u00e9e</span>";return;}
+    var getCol=function(hdrs,patterns){for(var p of patterns){var idx=hdrs.findIndex(function(h){return h.toLowerCase().includes(p.toLowerCase());});if(idx>=0)return idx;}return -1;};
+    var iNom=getCol(headers,["nom_eleve","prenom","nom"]);
+    var iO1=getCol(headers,["obs01_","obs1_","obs01","obs1"]);
+    var iO2=getCol(headers,["obs02_","obs2_","obs02","obs2"]);
+    var iO3=getCol(headers,["obs03_","obs3_","obs03","obs3"]);
+    var codeToVal=function(s){s=(s||"").toString().trim().toUpperCase();if(s==="A"||s.includes("SAUT"))return 3;if(s==="B"||s.includes("COORD"))return 6;if(s==="C"||s.includes("ACCEL"))return 9;var n=parseFloat(s);return isNaN(n)?null:Math.min(10,Math.max(0,n));};
+    var rows=document.getElementById("form-rows");rows.innerHTML="";var cnt=0,skip=0;
+    for(var i=headerIdx+1;i<lines.length;i++){
+      var cols=lines[i].split(";").map(function(c){return c.trim();});
+      if(!cols[iNom]||cols[iNom].toUpperCase().startsWith("BILAN")){skip++;continue;}
+      var v1=codeToVal(cols[iO1]),v2=codeToVal(cols[iO2]),v3=codeToVal(cols[iO3]);
+      var d=document.createElement("div");d.className="form-grid";
+      d.innerHTML="<input type='text' class='prenom' value='"+cols[iNom]+"'>"+
+        "<input type='number' min='0' max='10' step='0.5' class='obs1' value='"+(v1||"")+"'>"+
+        "<input type='number' min='0' max='10' step='0.5' class='obs2' value='"+(v2||"")+"'>"+
+        "<input type='number' min='0' max='10' step='0.5' class='obs3' value='"+(v3||"")+"'>";
+      rows.appendChild(d);cnt++;
+    }
+    document.getElementById("csv-status").innerHTML="<span style='color:#166534'>"+cnt+" \u00e9l\u00e8ves import\u00e9s</span>"+(skip?"&nbsp;·&nbsp; <span style='color:#6b7280'>"+skip+" ignor\u00e9s</span>":"");
+  };
+  reader.readAsText(f,"UTF-8");
+}
+
+// Axe prioritaire selon lacune
+function axePriorite(lacune1obs){
+  if(!lacune1obs)return{titre:"Approfondir l\u2019autonomie et le choix du parcours optimal",sa:"SA-C1"};
+  var map={"OBS-01":{titre:REF.axes[2].titre,sa:REF.axes[2].sa},"OBS-02":{titre:REF.axes[1].titre,sa:REF.axes[1].sa},"OBS-03":{titre:REF.axes[0].titre,sa:REF.axes[0].sa}};
+  return map[lacune1obs]||{titre:REF.axes[0].titre,sa:"SA-A1"};
+}
+
+// Analyser
+function analyser(){
+  var rows=document.querySelectorAll("#form-rows .form-grid");
+  eleves=[];
+  rows.forEach(function(r){
+    var prenom=r.querySelector(".prenom").value.trim();
+    var o1=parseFloat(r.querySelector(".obs1").value);
+    var o2=parseFloat(r.querySelector(".obs2").value);
+    var o3=parseFloat(r.querySelector(".obs3").value);
+    r.querySelectorAll("input").forEach(function(i){i.classList.remove("err");});
+    var ok=true;
+    if(!prenom){r.querySelector(".prenom").classList.add("err");ok=false;}
+    [o1,o2,o3].forEach(function(v,i){var inp=r.querySelectorAll("input[type=number]")[i];if(isNaN(v)||v<0||v>10){inp.classList.add("err");ok=false;}});
+    if(ok&&prenom){
+      var moy=Math.round(((o1+o2+o3)/3)*10)/10;
+      var pG=profil(moy),pD=profil(o1)+"/"+profil(o2)+"/"+profil(o3);
+      var lacunes=[{obs:"OBS-01",val:o1},{obs:"OBS-02",val:o2},{obs:"OBS-03",val:o3}].filter(function(x){return x.val<REF.seuils.B;}).sort(function(a,b){return a.val-b.val;});
+      var axe=axePriorite(lacunes.length>0?lacunes[0].obs:null);
+      eleves.push({prenom:prenom,o1:o1,o2:o2,o3:o3,moy:moy,profGlobal:pG,profDetail:pD,lacunes:lacunes,axeTitre:axe.titre,sa:axe.sa});
+    }
+  });
+  if(eleves.length===0){alert("Aucun \u00e9l\u00e8ve valide.");return;}
+  eleves.sort(function(a,b){return b.moy-a.moy;});
+  eleves.forEach(function(e,i){e.rang=i+1;});
+  renderResultats();
+  document.getElementById("resultats").classList.remove("hidden");
+}
+
+function renderResultats(){
+  var nA=eleves.filter(function(e){return e.profGlobal==="A";}).length;
+  var nB=eleves.filter(function(e){return e.profGlobal==="B";}).length;
+  var nC=eleves.filter(function(e){return e.profGlobal==="C";}).length;
+  var moy=Math.round(eleves.reduce(function(s,e){return s+e.moy;},0)/eleves.length*10)/10;
+  var mO1=Math.round(eleves.reduce(function(s,e){return s+e.o1;},0)/eleves.length*10)/10;
+  var mO2=Math.round(eleves.reduce(function(s,e){return s+e.o2;},0)/eleves.length*10)/10;
+  var mO3=Math.round(eleves.reduce(function(s,e){return s+e.o3;},0)/eleves.length*10)/10;
+
+  document.getElementById("bilan-cards").innerHTML=
+    "<div class='stat-card stat-A'><div class='stat-val'>"+nA+"</div><div class='stat-lbl'>Degr\u00e9 A<br>"+Math.round(nA/eleves.length*100)+"%</div></div>"+
+    "<div class='stat-card stat-B'><div class='stat-val'>"+nB+"</div><div class='stat-lbl'>Degr\u00e9 B<br>"+Math.round(nB/eleves.length*100)+"%</div></div>"+
+    "<div class='stat-card stat-C'><div class='stat-val'>"+nC+"</div><div class='stat-lbl'>Degr\u00e9 C<br>"+Math.round(nC/eleves.length*100)+"%</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--bleu2)'>"+moy+"</div><div class='stat-lbl'>Moy. /10</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--bleu)'>"+(moy*2).toFixed(1)+"</div><div class='stat-lbl'>Moy. /20</div></div>";
+
+  var obsLabel=function(t){return t<REF.seuils.B?"<span style='color:var(--rouge);font-weight:600'>Lacune \u2192 SA prioritaire</span>":t<REF.seuils.C?"<span style='color:var(--amber);font-weight:600'>En cours \u2192 Consolider</span>":"<span style='color:var(--vert);font-weight:600'>Bon niveau \u2192 Approfondir</span>";};
+  document.getElementById("bilan-obs").innerHTML=
+    "<table><thead><tr><th>Observable</th><th>Moy. classe</th><th>Statut</th></tr></thead><tbody>"+
+    "<tr><td>"+REF.observables[0].nom+"</td><td>"+mO1+"/10</td><td>"+obsLabel(mO1)+"</td></tr>"+
+    "<tr><td>"+REF.observables[1].nom+"</td><td>"+mO2+"/10</td><td>"+obsLabel(mO2)+"</td></tr>"+
+    "<tr><td>"+REF.observables[2].nom+"</td><td>"+mO3+"/10</td><td>"+obsLabel(mO3)+"</td></tr>"+
+    "</tbody></table>";
+
+  var dec=document.getElementById("bilan-decision");
+  if(nA>=nB&&nA>=nC){dec.style.background="#fee2e2";dec.style.color="var(--rouge)";dec.textContent="Classe d\u00e9butante ("+nA+" \u00e9l\u00e8ves A) \u2014 Priorit\u00e9 fondamentaux rythmique + impulsion";}
+  else if(nB>=nA&&nB>=nC){dec.style.background="#fef3c7";dec.style.color="var(--amber)";dec.textContent="Classe interm\u00e9diaire ("+nB+" \u00e9l\u00e8ves B) \u2014 Diff\u00e9renciation A/B en cours";}
+  else{dec.style.background="#dcfce7";dec.style.color="var(--vert)";dec.textContent="Classe avanc\u00e9e ("+nC+" \u00e9l\u00e8ves C) \u2014 Approfondissement et tutorat";}
+
+  var tbody=document.getElementById("tbody-individuel");tbody.innerHTML="";
+  eleves.forEach(function(e){
+    var lacTxt=e.lacunes.length>0?e.lacunes.map(function(l,i){return "<span class='lacune-tag'>L"+(i+1)+" "+l.obs+" : "+l.val+"</span>";}).join(" "):"<span style='color:var(--vert)'>Aucune</span>";
+    tbody.innerHTML+="<tr class='row-"+e.profGlobal+"'><td>"+e.rang+"</td><td><strong>"+e.prenom+"</strong></td>"+
+      "<td>"+e.o1+"</td><td>"+e.o2+"</td><td>"+e.o3+"</td>"+
+      "<td><strong>"+e.moy+"</strong></td><td>"+(e.moy*2).toFixed(1)+"</td>"+
+      "<td><span class='badge badge-"+e.profGlobal+"'>"+e.profGlobal+"</span></td>"+
+      "<td style='font-size:.7rem;'>"+e.profDetail+"</td>"+
+      "<td>"+lacTxt+"</td>"+
+      "<td style='font-size:.7rem;'>"+e.axeTitre+"</td>"+
+      "<td style='font-size:.7rem;'>"+e.sa+"</td></tr>";
+  });
+
+  var gb=document.getElementById("groupes-besoin");
+  var labelP={"A":"Coureur Sauteur","B":"Coureur Coordonn\u00e9","C":"Coureur Acc\u00e9l\u00e9rateur"};
+  var saP={"A":"SA-A1","B":"SA-B1","C":"SA-C1"};
+  gb.innerHTML=["A","B","C"].map(function(p){
+    var g=eleves.filter(function(e){return e.profGlobal===p;});if(g.length===0)return"";
+    return "<div style='margin-bottom:8px;padding:8px;border-radius:var(--r);background:"+(p==="A"?"#fff5f5":p==="B"?"#fffbeb":"#f0fdf4")+"'>"+
+      "<span class='badge badge-"+p+"'>"+p+"</span> <strong style='margin-left:5px;'>"+labelP[p]+"</strong> \u2014 "+g.length+" \u00e9l\u00e8ves<br>"+
+      "<span style='font-size:.72rem;color:#6b7280;'>SA : "+saP[p]+" \u2014 "+REF.sa[saP[p]].nom+"</span><br>"+
+      "<span style='font-size:.72rem;'>"+g.map(function(e){return e.prenom;}).join(", ")+"</span></div>";
+  }).join("");
+}
+
+// ── Axes ──────────────────────────────────────────
+function pert_moy(obsId){var idx={"OBS-01":0,"OBS-02":1,"OBS-03":2};var vals=eleves.map(function(e){return[e.o1,e.o2,e.o3][idx[obsId]||0];});return Math.round(vals.reduce(function(s,v){return s+v;},0)/vals.length*10)/10;}
+function buildAxes(){
+  var axes=REF.axes.map(function(a){var idx={"OBS-01":0,"OBS-02":1,"OBS-03":2};var vals=eleves.map(function(e){return[e.o1,e.o2,e.o3][idx[a.obs]||0];});var n=vals.filter(function(v){return v<REF.seuils.B;}).length;return Object.assign({},a,{pert:Math.round(n/eleves.length*100)});});
+  axes.sort(function(a,b){return b.pert-a.pert;});
+  var c=document.getElementById("axes-list");c.innerHTML="";
+  axes.forEach(function(a){
+    var div=document.createElement("div");div.className="axe-item";div.id="axe-item-"+a.id;
+    div.innerHTML="<label><input type='checkbox' id='chk-"+a.id+"' value='"+a.id+"' onchange='toggleAxe(\""+a.id+"\")'>" +
+      "<div style='flex:1;'><div class='axe-title'>"+a.titre+"</div>"+
+      "<div class='axe-meta'>Pertinence : <strong>"+a.pert+"%</strong> &nbsp;\u00b7&nbsp; "+a.obs+" : "+pert_moy(a.obs)+"/10<br>SA : "+a.sa+" \u2014 "+REF.sa[a.sa].nom+"<br><em style='font-size:.7rem;'>"+a.justif+"</em></div>"+
+      "<div class='pert-bar'><div class='pert-fill' style='width:"+a.pert+"%'></div></div></div></label>";
+    c.appendChild(div);
+  });
+}
+function toggleAxe(id){
+  var chk=document.getElementById("chk-"+id),item=document.getElementById("axe-item-"+id),msg=document.getElementById("axes-msg");
+  if(chk.checked){if(axesChecked.length>=4){chk.checked=false;msg.textContent="Maximum 4 axes atteint.";return;}axesChecked.push(id);item.classList.add("checked");}
+  else{axesChecked=axesChecked.filter(function(x){return x!==id;});item.classList.remove("checked");}
+  msg.textContent="";
+  var btn=document.getElementById("btn-etape3");btn.disabled=axesChecked.length<3;
+  if(axesChecked.length>0&&axesChecked.length<3)msg.textContent="S\u00e9lectionnez encore "+(3-axesChecked.length)+" axe(s).";
+}
+
+// ── Slider ────────────────────────────────────────
+var DISTRIB={3:{6:"2+2+2",7:"2+2+3",8:"3+2+3",9:"3+3+3",10:"3+4+3"},4:{6:"1+2+2+1",7:"2+2+2+1",8:"2+2+2+2",9:"2+3+2+2",10:"3+2+3+2"}};
+function updateSlider(){
+  var n=parseInt(document.getElementById("slider-seances").value);nbSeances=n;
+  document.getElementById("slider-label").textContent="Cycle de "+n+" s\u00e9ances";
+  var nA=axesChecked.length||3,key=Math.min(4,Math.max(3,nA));
+  var distrib=(DISTRIB[key]&&DISTRIB[key][n])||"2+2+2";
+  var parts=distrib.split("+").map(Number);
+  var axesTitles=axesChecked.length>0?axesChecked.map(function(id){return REF.axes.find(function(a){return a.id===id;});}):REF.axes.slice(0,nA);
+  var html="<div style='font-weight:600;margin-bottom:6px;'>R\u00e9partition ("+distrib+")</div>";
+  parts.forEach(function(nb,i){
+    var a=axesTitles[Math.min(i,axesTitles.length-1)];
+    html+="<div class='seq-row'><span class='seq-num'>S"+(i+1)+"</span><span style='flex:0 0 70px;color:#6b7280;'>"+nb+" s\u00e9ance"+(nb>1?"s":"")+"</span><span>"+(a?a.titre.substring(0,55)+"\u2026":"")+"</span></div>";
+  });
+  document.getElementById("slider-preview").innerHTML=html;
+}
+
+// ── Planification ─────────────────────────────────
+function genererPlanif(){
+  var n=parseInt(document.getElementById("slider-seances").value);
+  var nA=axesChecked.length,key=Math.min(4,Math.max(3,nA));
+  var distrib=(DISTRIB[key]&&DISTRIB[key][n])||"2+2+2";
+  var parts=distrib.split("+").map(Number);
+  var axesRet=axesChecked.map(function(id){return REF.axes.find(function(a){return a.id===id;});}).filter(Boolean);
+  var nAe=eleves.filter(function(e){return e.profGlobal==="A";}).length;
+  var nBe=eleves.filter(function(e){return e.profGlobal==="B";}).length;
+  var nCe=eleves.filter(function(e){return e.profGlobal==="C";}).length;
+  var profilDom=nAe>=nBe&&nAe>=nCe?"A":nBe>=nAe&&nBe>=nCe?"B":"C";
+  var seanceG=1,html="";
+  var seqTitres=["Fondamentaux \u2014 Toute la classe","Diff\u00e9renciation A/B/C","Consolidation et approfondissement","Autonomie et \u00e9valuation formative"];
+  var contenuGroupe=function(iSeq,iSea,nbSea,axe){
+    var map={"AXE1":{objectif:"Construire le rythme 3 appuis inter-haies",
+      grpA:"<strong>SA-A1</strong><br>3 haies rapproch\u00e9es \u00b7 Compter 3 foul\u00e9es \u00e0 voix haute<br><em>CR : 3 appuis sur 2 haies cons\u00e9cutives</em>",
+      grpB:"<strong>SA-A1</strong><br>Parcours std + marquages sol \u00b7 Poser sur rep\u00e8re<br><em>CR : 3 appuis r\u00e9guliers sur 4 haies</em>",
+      grpC:"<strong>SA-B1</strong><br>Haies espac\u00e9es \u00b7 Acc\u00e9l\u00e9rer dans l\u2019intervalle<br><em>CR : rythme croissant tout le parcours</em>"},
+     "AXE2":{objectif:"Construire l\u2019impulsion loin et l\u2019attaque genou haut",
+      grpA:"<strong>SA-A1</strong><br>Haie basse + zone d\u2019impulsion marqu\u00e9e<br><em>CR : impulsion hors de la zone rouge</em>",
+      grpB:"<strong>SA-B1</strong><br>Haie standard \u00b7 Genou haut avant franchissement<br><em>CR : franchissement rasant sur 3 haies</em>",
+      grpC:"<strong>SA-C1</strong><br>Parcours complet \u00b7 Dissocier jambe attaque/reprise<br><em>CR : reprise active au sol observ\u00e9e</em>"},
+     "AXE3":{objectif:"Stabiliser la continuit\u00e9 et l\u2019alignement",
+      grpA:"<strong>SA-A1</strong><br>3 haies \u00b7 Ne jamais s\u2019arr\u00eater apr\u00e8s la haie<br><em>CR : aucune pause visible</em>",
+      grpB:"<strong>SA-B1</strong><br>5 haies \u00b7 \u00c9paules dans l\u2019axe toujours<br><em>CR : rotation &lt; 30\u00b0 sur 4 haies</em>",
+      grpC:"<strong>SA-C1</strong><br>Parcours \u00e9valuation \u00b7 Bras actifs en opposition<br><em>CR : \u00e9quilibre dynamique tout le parcours</em>"},
+     "AXE4":{objectif:"Dissociation segmentaire et reprise active",
+      grpA:"<strong>SA-B1</strong><br>Dissociation sans haies \u00b7 Alt. jambe G/D<br><em>CR : dissociation visible 3 fois</em>",
+      grpB:"<strong>SA-B1</strong><br>Haie basse \u00b7 Jambe attaque revient vite<br><em>CR : reprise en moins de 2 appuis</em>",
+      grpC:"<strong>SA-C1</strong><br>Parcours vitesse \u00b7 Maximiser dissociation<br><em>CR : chrono am\u00e9lior\u00e9 vs DI</em>"},
+     "AXE5":{objectif:"Coordination bras-jambes pour l\u2019\u00e9quilibre",
+      grpA:"<strong>SA-A1</strong><br>Marche avec bras actifs en opposition<br><em>CR : coordination visible en marche</em>",
+      grpB:"<strong>SA-B1</strong><br>3 haies \u00b7 Bras haut-bas sur la haie<br><em>CR : bras oppos\u00e9 visible 2 haies</em>",
+      grpC:"<strong>SA-C1</strong><br>Parcours vitesse \u00b7 Bras dynamiques tout parcours<br><em>CR : alignement parfait observ\u00e9</em>"},
+     "AXE6":{objectif:"Choix autonome du parcours optimal",
+      grpA:"<strong>SA-A1</strong><br>2 parcours \u00e0 comparer \u00b7 Choisir le meilleur<br><em>CR : choisit sans aide enseignant</em>",
+      grpB:"<strong>SA-B1</strong><br>Comparer chrono haies vs plat<br><em>CR : identifie son niveau C1</em>",
+      grpC:"<strong>SA-C1</strong><br>Autocoach avec partenaire observateur<br><em>CR : feedback pr\u00e9cis et exploitable</em>"}};
+    return map[axe.id]||map["AXE1"];
+  };
+
+  parts.forEach(function(nbSea,iSeq){
+    var axePrinc=axesRet[Math.min(iSeq,axesRet.length-1)];
+    var titreSeq=seqTitres[iSeq]||("S\u00e9quence "+(iSeq+1));
+    html+="<div class='seq-block'><div class='seq-head'>S\u00e9quence "+(iSeq+1)+" \u2014 "+titreSeq+" \u00b7 "+nbSea+" s\u00e9ance"+(nbSea>1?"s":"")+"</div>"+
+      "<div style='padding:8px;font-size:.75rem;color:#6b7280;'>Axe : <strong>"+axePrinc.titre+"</strong></div>"+
+      "<div style='overflow-x:auto;'><table style='min-width:680px;'><thead><tr>"+
+      "<th style='width:36px;'>N\u00b0</th><th>Axe dominant</th><th>Objectif</th>"+
+      "<th style='background:#fff5f5;'>Groupe A \u2014 "+REF.sa["SA-A1"].nom+"</th>"+
+      "<th style='background:#fffbeb;'>Groupe B \u2014 "+REF.sa["SA-B1"].nom+"</th>"+
+      "<th style='background:#f0fdf4;'>Groupe C \u2014 "+REF.sa["SA-C1"].nom+"</th>"+
+      "</tr></thead><tbody>";
+    for(var i=0;i<nbSea;i++){
+      var isLastAll=(i===nbSea-1)&&(iSeq===parts.length-1);
+      var cont=contenuGroupe(iSeq,i,nbSea,axePrinc);
+      html+="<tr><td class='seance-num'>"+seanceG+"</td>"+
+        "<td style='font-size:.72rem;'>"+axePrinc.titre.substring(0,48)+"\u2026</td>"+
+        "<td style='font-size:.72rem;'>"+cont.objectif+"</td>"+
+        "<td class='groupe-A' style='font-size:.7rem;'>"+cont.grpA+"</td>"+
+        "<td class='groupe-B' style='font-size:.7rem;'>"+cont.grpB+"</td>"+
+        "<td class='groupe-C' style='font-size:.7rem;'>"+cont.grpC+"</td></tr>";
+      if(!isLastAll&&i<nbSea-1){
+        html+="<tr><td colspan='6'><div class='indicatif'>\uD83D\uDCCB \u00c0 observer \u2014 "+axePrinc.indicateur+" <span class='ind-label'>(Indicatif \u2014 d\u00e9cision de progression : vous)</span></div></td></tr>";
+      }
+      seanceG++;
+    }
+    html+="</tbody></table></div></div>";
+  });
+
+  var nTotal=eleves.length;
+  var labPD={"A":"d\u00e9butants","B":"interm\u00e9diaires","C":"avanc\u00e9s"};
+  html+="<div class='resume-box'><strong>R\u00e9sum\u00e9 du cycle</strong><br>"+
+    "<table style='margin-top:6px;'><thead><tr><th>S\u00e9quence</th><th>Axe</th><th>S\u00e9ances</th><th>Profil cibl\u00e9</th></tr></thead><tbody>"+
+    parts.map(function(nb,i){var a=axesRet[Math.min(i,axesRet.length-1)];return"<tr><td>S\u00e9q "+(i+1)+"</td><td>"+a.titre.substring(0,45)+"\u2026</td><td>"+nb+"</td><td>"+(i===0?"Tous":i<parts.length-1?"A et B":"B et C")+"</td></tr>";}).join("")+
+    "</tbody></table>"+
+    "<div style='margin-top:8px;font-size:.76rem;'>Cycle de <strong>"+n+" s\u00e9ances</strong> \u00b7 <strong>"+nA+" axes</strong> retenus \u00b7 Profil dominant : <strong>"+profilDom+" \u2014 "+labPD[profilDom]+"</strong> ("+[nAe,nBe,nCe][["A","B","C"].indexOf(profilDom)]+" \u00e9l\u00e8ves)</div>"+
+    "<div style='margin-top:6px;font-size:.73rem;border-top:1px solid #86efac;padding-top:6px;'><strong>Cet outil ne produit pas de note.</strong> La d\u00e9cision finale reste toujours \u00e0 l\u2019enseignant.</div></div>";
+
+  document.getElementById("planif-content").innerHTML=html;
+  goStep(4);
+}
+
+// ── Export CSV Diagnostic ─────────────────────────
+function exportCSVDiag(){
+  if(!eleves.length){alert("Analysez d\u2019abord.");return;}
+  var hdr=["Pr\u00e9nom","OBS-01","OBS-02","OBS-03","Moyenne /10","/20","Profil global","Profil d\u00e9taill\u00e9","Lacune 1","SA recommand\u00e9e"];
+  var rows=eleves.map(function(e){return[e.prenom,e.o1,e.o2,e.o3,e.moy,(e.moy*2).toFixed(1),e.profGlobal,e.profDetail,e.lacunes.length>0?e.lacunes[0].obs+":"+e.lacunes[0].val:"Aucune",e.sa];});
+  var d=new Date(),ds=d.getFullYear()+""+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+  var csv="\uFEFF"+[hdr,...rows].map(function(r){return r.join(";");}).join("\n");
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=url;a.download="diag_ES-HAI_"+ds+".csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════
+// ES — ÉVALUATION SOMMATIVE
+// ══════════════════════════════════════════════════
+var esCount=0;
+function addEsRow(prenom,chronoDI,techDI,chronoES,genre,techES,bonusAppre){
+  esCount++;var n=esCount;
+  var genreClasse=(document.getElementById("es-genre-classe")||{}).value||"G";
+  var g=genre||(genreClasse==="M"?"G":genreClasse);
+  var div=document.createElement("div");div.className="es-row";
+  div.innerHTML=
+    "<span style='font-weight:700;color:var(--gris);text-align:center;'>"+n+"</span>"+
+    "<input type='text' class='prenom' placeholder='\u00c9l\u00e8ve "+n+"' value='"+(prenom||"")+"'>"+
+    "<input type='number' step='0.1' min='5' max='120' class='chrono-di' placeholder='s' value='"+(chronoDI||"")+"' oninput='autoCalcRow(this)'>"+
+    "<input type='number' step='1'   min='0' max='12'  class='tech-di'   placeholder='/12' value='"+(techDI||"")+"' oninput='autoCalcRow(this)'>"+
+    "<input type='number' step='0.1' min='5' max='120' class='chrono-es' placeholder='s' value='"+(chronoES||"")+"' oninput='autoCalcRow(this)'>"+
+    "<select class='genre-sel' onchange='autoCalcRow(this)'>"+
+      "<option value='G'"+(g==="G"?" selected":"")+">G</option>"+
+      "<option value='F'"+(g==="F"?" selected":"")+">F</option>"+
+    "</select>"+
+    "<input type='text' class='c1-display' readonly placeholder='\u2014' style='background:var(--lgris);font-weight:700;text-align:center;'>"+
+    "<input type='number' step='1' min='0' max='12' class='tech-es' placeholder='/12' value='"+(techES||"")+"' oninput='autoCalcRow(this)'>"+
+    "<input type='text' class='c2-display' readonly placeholder='\u2014' style='background:var(--lgris);font-weight:700;text-align:center;'>"+
+    "<select class='appre-sel' onchange='autoCalcRow(this)'>"+
+      "<option value='0'>0</option>"+
+      "<option value='1'"+(bonusAppre===1?" selected":"")+">+1</option>"+
+    "</select>"+
+    "<input type='text' class='note-display' readonly placeholder='\u2014' style='background:var(--bleu3);font-weight:800;font-size:.92rem;text-align:center;color:var(--bleu2);'>"+"<button class='btn-comment' title='Commentaire' onclick='toggleComment(this)'>💬</button><div class='comment-bubble hidden' contenteditable='true' onblur='saveComment(this)'></div>";
+  document.getElementById("es-rows").appendChild(div);
+}
+function removeLastEsRow(){var r=document.getElementById("es-rows");if(r.lastChild)r.removeChild(r.lastChild);}
+
+function autoCalcRow(el){
+  var row=el.closest(".es-row");if(!row)return;
+  var chronoES=parseFloat(row.querySelector(".chrono-es").value);
+  var genre=row.querySelector(".genre-sel").value;
+  var techES12=parseInt(row.querySelector(".tech-es").value);
+  var chronoDI=parseFloat(row.querySelector(".chrono-di").value);
+  var techDI12=parseInt(row.querySelector(".tech-di").value);
+  var appre=parseInt(row.querySelector(".appre-sel").value)||0;
+  var c1=!isNaN(chronoES)?noteC1(chronoES,genre):null;
+  var c2=!isNaN(techES12)?noteC2(techES12):null;
+  var c3d=calcC3(chronoDI,chronoES,techDI12,techES12,appre);
+  row.querySelector(".c1-display").value=c1!==null?c1+"/10":"";
+  row.querySelector(".c2-display").value=c2!==null?c2+"/10":"";
+  if(c1!==null&&c2!==null){
+    var note=calcNote(c1,c2,c3d.bonus);
+    var nd=row.querySelector(".note-display");
+    nd.value=note+"/20";
+    nd.style.color=mentionColor(note);
+    nd.title="Mention : "+mention(note)+" \u2014 C3 : "+c3d.bonus+"/4";
+  } else {row.querySelector(".note-display").value="";}
+}
+
+function calculerNotes(){
+  var rows=document.querySelectorAll("#es-rows .es-row"),data=[];
+  rows.forEach(function(row){
+    autoCalcRow(row.querySelector(".chrono-es"));
+    var prenom=row.querySelector(".prenom").value.trim();
+    var chronoES=parseFloat(row.querySelector(".chrono-es").value);
+    var genre=row.querySelector(".genre-sel").value;
+    var techES=parseInt(row.querySelector(".tech-es").value);
+    var chronoDI=parseFloat(row.querySelector(".chrono-di").value);
+    var techDI=parseInt(row.querySelector(".tech-di").value);
+    var appre=parseInt(row.querySelector(".appre-sel").value)||0;
+    if(!prenom&&isNaN(chronoES))return;
+    var c1=!isNaN(chronoES)?noteC1(chronoES,genre):null;
+    var c2=!isNaN(techES)?noteC2(techES):null;
+    var c3d=calcC3(chronoDI,chronoES,techDI,techES,appre);
+    var note=(c1!==null&&c2!==null)?calcNote(c1,c2,c3d.bonus):null;
+    data.push({prenom:prenom||"El\u00e8ve",genre:genre,
+      chronoDI:isNaN(chronoDI)?null:chronoDI,techDI:isNaN(techDI)?null:techDI,
+      chronoES:isNaN(chronoES)?null:chronoES,techES:isNaN(techES)?null:techES,
+      c1:c1,c2:c2,c3:c3d,note:note,
+      mention:note!==null?mention(note):"\u2014",
+      degre:c2!==null?degreC2(c2):"\u2014"});
+  });
+  if(!data.length){alert("Aucune donn\u00e9e valide.");return;}
+  window._esData=data;
+  afficherResultats(data);
+}
+
+function afficherResultats(data){
+  var sorted=data.slice().filter(function(e){return e.note!==null;}).sort(function(a,b){return b.note-a.note;});
+  sorted.forEach(function(e,i){e.rang=i+1;});
+  var notes=sorted.map(function(e){return e.note;});
+  var moy=notes.length?Math.round(notes.reduce(function(s,n){return s+n;},0)/notes.length*10)/10:0;
+  var max=notes.length?Math.max.apply(null,notes):0;
+  var min=notes.length?Math.min.apply(null,notes):0;
+  var nPass=notes.filter(function(n){return n>=10;}).length;
+  var nA=sorted.filter(function(e){return e.degre==="A";}).length;
+  var nB=sorted.filter(function(e){return e.degre==="B";}).length;
+  var nC=sorted.filter(function(e){return e.degre==="C";}).length;
+
+  document.getElementById("es-stat-cards").innerHTML=
+    "<div class='stat-card'><div class='stat-val' style='color:var(--bleu2)'>"+moy+"</div><div class='stat-lbl'>Moyenne /20</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--vert)'>"+max+"</div><div class='stat-lbl'>Meilleure note</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--rouge)'>"+min+"</div><div class='stat-lbl'>Note la plus basse</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--vert)'>"+nPass+"</div><div class='stat-lbl'>\u2265 10/20<br>(admis)</div></div>"+
+    "<div class='stat-card stat-A'><div class='stat-val'>"+nA+"</div><div class='stat-lbl'>Sauteur A</div></div>"+
+    "<div class='stat-card stat-B'><div class='stat-val'>"+nB+"</div><div class='stat-lbl'>Coordonn\u00e9 B</div></div>"+
+    "<div class='stat-card stat-C'><div class='stat-val'>"+nC+"</div><div class='stat-lbl'>Acc\u00e9l\u00e9rateur C</div></div>"+
+    "<div class='stat-card'><div class='stat-val'>"+sorted.length+"</div><div class='stat-lbl'>\u00c9l\u00e8ves</div></div>";
+
+  var mens=["Tr\u00e8s Bien","Bien","Assez Bien","Passable","Insuffisant","Tr\u00e8s Insuffisant"];
+  var menColors=["#166534","#15803d","#ca8a04","#92400e","#dc2626","#991b1b"];
+  var mensBg=["#dcfce7","#f0fdf4","#fef9c3","#fef3c7","#fee2e2","#fecaca"];
+  var rept={};mens.forEach(function(m){rept[m]=0;});
+  sorted.forEach(function(e){rept[mention(e.note)]++;});
+  var reptHtml="<div style='display:flex;flex-wrap:wrap;gap:5px;'>";
+  mens.forEach(function(m,i){if(rept[m]>0)reptHtml+="<span style='padding:3px 9px;border-radius:10px;font-size:.72rem;font-weight:700;background:"+mensBg[i]+";color:"+menColors[i]+"'>"+m+" : "+rept[m]+"</span>";});
+  reptHtml+="</div>";
+  document.getElementById("es-repartition").innerHTML=reptHtml;
+
+  var tbody=document.getElementById("tbody-notes");tbody.innerHTML="";
+  sorted.forEach(function(e){
+    var dc=e.c3.dChrono!==null?(e.c3.dChrono>0?"<span style='color:var(--vert)'>-"+e.c3.dChrono.toFixed(1)+"\"</span>":"<span style='color:var(--rouge)'>"+e.c3.dChrono.toFixed(1)+"\"</span>"):"\u2014";
+    var dt=e.c3.dTech!==null?(e.c3.dTech>0?"<span style='color:var(--vert)'>+"+e.c3.dTech+"</span>":"<span style='color:var(--rouge)'>"+e.c3.dTech+"</span>"):"\u2014";
+    tbody.innerHTML+="<tr class='row-"+e.degre+"'>"+
+      "<td><strong>"+e.rang+"</strong></td><td><strong>"+e.prenom+"</strong></td>"+
+      "<td><span class='badge badge-info'>"+e.genre+"</span></td>"+
+      "<td style='color:#6b7280;'>"+(e.chronoDI?e.chronoDI+"\"":"\u2014")+"</td>"+
+      "<td style='color:#6b7280;'>"+(e.techDI!==null?e.techDI+"/12":"\u2014")+"</td>"+
+      "<td>"+(e.chronoES!==null?e.chronoES+"\"":"\u2014")+"</td>"+
+      "<td style='font-weight:600;'>"+(e.c1!==null?e.c1+"/10":"\u2014")+"</td>"+
+      "<td>"+(e.techES!==null?e.techES+"/12":"\u2014")+"</td>"+
+      "<td style='font-weight:600;'>"+(e.c2!==null?e.c2+"/10":"\u2014")+"</td>"+
+      "<td>"+dc+"</td><td>"+dt+"</td>"+
+      "<td><strong>"+e.c3.bonus+"/4</strong></td>"+
+      "<td style='color:#6b7280;'>"+(e.c1!==null&&e.c2!==null?Math.round((e.c1+e.c2)*0.8*10)/10:"\u2014")+"</td>"+
+      "<td style='font-size:1.05rem;font-weight:800;color:"+mentionColor(e.note)+"'>"+e.note+"/20</td>"+
+      "<td style='font-size:.75rem;font-weight:700;color:"+mentionColor(e.note)+"'>"+e.mention+"</td>"+
+      "<td><span class='badge badge-"+e.degre+"'>"+e.degre+"</span></td></tr>";
+  });
+  document.getElementById("tfoot-notes").innerHTML=
+    "<tr style='background:var(--lgris);font-weight:700;'><td colspan='13'>MOYENNE CLASSE</td>"+
+    "<td style='font-size:1rem;font-weight:800;color:var(--bleu2);'>"+moy+"/20</td><td></td><td></td></tr>";
+
+  var releve="<table><thead><tr><th>N\u00b0</th><th>Pr\u00e9nom / NOM</th><th>C1/10</th><th>C2/10</th><th>C3/4</th><th>NOTE /20</th><th>Mention</th></tr></thead><tbody>";
+  sorted.forEach(function(e,i){
+    releve+="<tr"+(i%2===0?" style='background:#fafafa;'"  :"")+">";
+    releve+="<td>"+(i+1)+"</td><td><strong>"+e.prenom+"</strong></td>"+
+      "<td>"+(e.c1!==null?e.c1+"/10":"\u2014")+"</td>"+
+      "<td>"+(e.c2!==null?e.c2+"/10":"\u2014")+"</td>"+
+      "<td>"+e.c3.bonus+"/4</td>"+
+      "<td><strong style='color:"+mentionColor(e.note)+";font-size:1rem;'>"+e.note+"/20</strong></td>"+
+      "<td style='font-weight:600;color:"+mentionColor(e.note)+"'>"+e.mention+"</td></tr>";
+  });
+  releve+="</tbody></table>";
+  document.getElementById("releve-notes").innerHTML=releve;
+  document.getElementById("es-res-vide").classList.add("hidden");
+  document.getElementById("es-res-content").classList.remove("hidden");
+  document.getElementById("es-tools-panel").style.display="block";
+  window._sortedData = sorted;
+
+  // Rendre les prénoms cliquables → fiche individuelle
+  document.querySelectorAll("#tbody-notes tr").forEach(function(tr,i){
+    var td=tr.cells[1];
+    if(td){td.style.cursor="pointer";td.style.color="var(--bleu2)";td.title="Voir la fiche";td.onclick=function(){ouvrirFiche(i);};}
+  });
+
+  // Graphique progression
+  renderProgressChart(sorted);
+  document.getElementById("es-chart-panel").style.display="block";
+
+  // Sauvegarder automatiquement
+  sauvegardeAuto();
+}
+
+var _sortDir={};
+function trierPar(cle){
+  if(!window._esData)return;
+  _sortDir[cle]=!_sortDir[cle];
+  var sorted=window._esData.filter(function(e){return e.note!==null;}).slice();
+  sorted.sort(function(a,b){
+    var v=cle==="prenom"?a.prenom.localeCompare(b.prenom):b.note-a.note;
+    return _sortDir[cle]?-v:v;
+  });
+  window._esData.filter(function(e){return e.note===null;}).forEach(function(e){sorted.push(e);});
+  afficherResultats(sorted);
+}
+
+// Transfert données diagnostic → ES
+function transfererDiagES(){
+  if(!eleves.length)return;
+  var rows=document.getElementById("es-rows");rows.innerHTML="";esCount=0;
+  eleves.forEach(function(e){
+    addEsRow(e.prenom,"","","",e.profGlobal==="C"?"G":"G","",0);
+  });
+}
+
+// Export CSV notes
+function exportCSVNotes(){
+  if(!window._esData){alert("Aucune donn\u00e9e.");return;}
+  var hdr=["Pr\u00e9nom","Genre","DI Chrono","DI Tech/12","ES Chrono","ES Tech/12","C1/10","C2/10","Delta Chrono","Delta Tech","C3 Bonus/4","NOTE /20","Mention","Degr\u00e9"];
+  var rows=window._esData.filter(function(e){return e.note!==null;}).sort(function(a,b){return b.note-a.note;}).map(function(e){return[e.prenom,e.genre,e.chronoDI||"",e.techDI||"",e.chronoES||"",e.techES||"",e.c1||"",e.c2||"",e.c3.dChrono!==null?e.c3.dChrono.toFixed(1):"",e.c3.dTech!==null?e.c3.dTech:"",e.c3.bonus,e.note,e.mention,e.degre];});
+  var d=new Date(),ds=d.getFullYear()+""+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+  var csv="\uFEFF"+[hdr,...rows].map(function(r){return r.join(";");}).join("\n");
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=url;a.download="notes_ES-HAI_"+ds+".csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// Simulateur
+function simulerNote(){
+  var chr=parseFloat(document.getElementById("sim-chrono").value);
+  var g=document.getElementById("sim-genre").value;
+  var t12=parseInt(document.getElementById("sim-tech").value);
+  var cdi=parseFloat(document.getElementById("sim-chrono-di").value);
+  var tdi=parseInt(document.getElementById("sim-tech-di").value);
+  var ap=parseInt(document.getElementById("sim-appre").value)||0;
+  var res=document.getElementById("sim-result");
+  if(isNaN(chr)||isNaN(t12)){res.innerHTML="";return;}
+  var c1=noteC1(chr,g),c2=noteC2(t12),c3d=calcC3(cdi,chr,tdi,t12,ap);
+  var note=calcNote(c1,c2,c3d.bonus),deg=degreC2(c2),men=mention(note);
+  res.innerHTML="<div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;'>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--bleu)'>"+c1+"/10</div><div class='stat-lbl'>C1 Performance</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--bleu2)'>"+c2+"/10</div><div class='stat-lbl'>C2 Technique</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:var(--vert)'>"+c3d.bonus+"/4</div><div class='stat-lbl'>C3 Bonus"+(c3d.dChrono!==null?"<br>\u0394 "+c3d.dChrono.toFixed(1)+"\"":"")+""+(c3d.dTech!==null?" \u0394+"+c3d.dTech:"")+"</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='color:"+mentionColor(note)+";font-size:2rem;'>"+note+"</div><div class='stat-lbl'>NOTE /20</div></div>"+
+    "<div class='stat-card'><div class='stat-val' style='font-size:.95rem;color:"+mentionColor(note)+"'>"+men+"</div><div class='stat-lbl'>Mention &nbsp; <span class='badge badge-"+deg+"'>"+deg+"</span></div></div>"+
+    "</div>"+
+    "<div style='margin-top:8px;font-size:.76rem;background:var(--lgris);padding:7px 10px;border-radius:var(--r);'>"+
+    "D\u00e9tail : ("+c1+" + "+c2+") \u00d7 0,8 + "+c3d.bonus+" = "+Math.round((c1+c2)*0.8*10)/10+" + "+c3d.bonus+" = <strong>"+note+"/20</strong></div>";
+}
+
+// Barème complet
+function buildBaremeAll(){
+  var niveaux=[
+    {label:"1\u00e8re AC",dist:"30m \u00b7 3 haies",c1max:6,
+     bG:[["9\"0","0"],["8\"8","0.5"],["8\"5","1"],["8\"2","1.5"],["8\"0","2"],["7\"8","2.5"],["7\"5","3"],["7\"2","3.5"],["7\"0","4"],["6\"8","4.5"],["6\"5","5"],["6\"2","5.5"],["6\"0","6"]],
+     bF:[["9\"5","0"],["9\"2","0.5"],["9\"0","1"],["8\"8","1.5"],["8\"5","2"],["8\"2","2.5"],["8\"0","3"],["7\"8","3.5"],["7\"5","4"],["7\"2","4.5"],["7\"0","5"],["6\"8","5.5"],["6\"5","6"]]},
+    {label:"3\u00e8me AC",dist:"30m \u00b7 3 haies",c1max:6,
+     bG:[["8\"5","0"],["8\"2","0.5"],["8\"0","1"],["7\"8","1.5"],["7\"5","2"],["7\"2","2.5"],["7\"0","3"],["6\"8","3.5"],["6\"5","4"],["6\"2","4.5"],["6\"0","5"],["5\"8","5.5"],["5\"5","6"]],
+     bF:[["9\"0","0"],["8\"8","0.5"],["8\"5","1"],["8\"2","1.5"],["8\"0","2"],["7\"8","2.5"],["7\"5","3"],["7\"2","3.5"],["7\"0","4"],["6\"8","4.5"],["6\"5","5"],["6\"2","5.5"],["6\"0","6"]]},
+    {label:"T.C Lyc\u00e9e",dist:"50m \u00b7 5 haies",c1max:6,
+     bG:[["12\"5","0"],["12\"2","0.5"],["11\"8","1"],["11\"5","1.5"],["11\"2","2"],["10\"8","2.5"],["10\"5","3"],["10\"2","3.5"],["9\"8","4"],["9\"5","4.5"],["9\"2","5"],["8\"8","5.5"],["8\"5","6"]],
+     bF:[["13\"5","0"],["13\"2","0.5"],["12\"8","1"],["12\"5","1.5"],["12\"2","2"],["11\"8","2.5"],["11\"5","3"],["11\"2","3.5"],["10\"8","4"],["10\"5","4.5"],["10\"2","5"],["9\"8","5.5"],["9\"5","6"]]},
+    {label:"2\u00e8me BAC",dist:"50m \u00b7 5 haies",c1max:7,
+     bG:[["11\"5","0"],["11\"2","0.5"],["10\"9","1"],["10\"6","1.5"],["10\"4","2"],["10\"1","2.5"],["9\"8","3"],["9\"5","3.5"],["9\"2","4"],["8\"9","4.5"],["8\"6","5"],["8\"4","5.5"],["8\"1","6"],["7\"8","6.5"],["7\"5","7"]],
+     bF:[["12\"5","0"],["12\"2","0.5"],["11\"9","1"],["11\"6","1.5"],["11\"4","2"],["11\"1","2.5"],["10\"8","3"],["10\"5","3.5"],["10\"2","4"],["9\"9","4.5"],["9\"6","5"],["9\"4","5.5"],["9\"1","6"],["8\"8","6.5"],["8\"5","7"]]}
+  ];
+  var html="";
+  niveaux.forEach(function(niv){
+    html+="<div style='margin-bottom:16px;'><h3 style='color:var(--bleu);margin-bottom:5px;'>"+niv.label+" \u2014 "+niv.dist+"</h3>";
+    html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px;'>";
+    [["G",niv.bG],["F",niv.bF]].forEach(function(pair){
+      var g=pair[0],bar=pair[1];
+      html+="<div><strong style='font-size:.78rem;'>"+(g==="G"?"Gar\u00e7ons":"Filles")+"</strong>";
+      html+="<table class='bareme-table' style='margin-top:3px;'><tr><th>Chrono</th><th>C1/"+niv.c1max+"</th></tr>";
+      bar.forEach(function(row){
+        var n=parseFloat(row[1]);var bg=n>=niv.c1max*0.8?"var(--lvert)":n>=niv.c1max*0.5?"var(--lamber)":"var(--lrouge)";
+        html+="<tr style='background:"+bg+"'><td>"+row[0]+"</td><td><strong>"+row[1]+"</strong></td></tr>";
+      });
+      html+="</table></div>";
+    });
+    html+="</div></div>";
+  });
+  document.getElementById("bareme-all").innerHTML=html;
+}
+
+
+// ══════════════════════════════════════════════════
+// MODULE PHOTO — Lecture fiche manuscrite
+// ══════════════════════════════════════════════════
+var photoStore = { diag: [], es: [] };
+var ocrData    = { diag: null, es: null };
+
+function dragOver(e){ e.preventDefault(); }
+function dropPhoto(e, ctx){
+  e.preventDefault();
+  var files = Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); });
+  if(files.length) processPhotoFiles(files, ctx);
+}
+function handlePhotoInput(input, ctx){
+  processPhotoFiles(Array.from(input.files), ctx);
+  input.value = '';
+}
+
+function processPhotoFiles(files, ctx){
+  files.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(e2){
+      var b64  = e2.target.result.split(',')[1];
+      var mime = file.type || 'image/jpeg';
+      var idx  = photoStore[ctx].length;
+      photoStore[ctx].push({ b64:b64, mime:mime, name:file.name });
+      // Miniature
+      var dz   = document.getElementById(ctx+'-dz');
+      var tbox = document.getElementById(ctx+'-thumbs');
+      var lbl  = document.getElementById(ctx+'-ph-lbl');
+      var wrap = document.createElement('div');
+      wrap.className = 'photo-thumb';
+      wrap.dataset.idx = idx;
+      var img = document.createElement('img');
+      img.src = e2.target.result;
+      img.alt = file.name;
+      img.onclick = function(){ openModal(e2.target.result); };
+      var del = document.createElement('button');
+      del.className = 'thumb-del';
+      del.innerHTML = '&#x2715;';
+      del.onclick = function(ev){ ev.stopPropagation(); removePhoto(ctx, idx); };
+      var lbl2 = document.createElement('div');
+      lbl2.className = 'thumb-lbl';
+      lbl2.textContent = file.name || 'photo';
+      wrap.appendChild(img); wrap.appendChild(del); wrap.appendChild(lbl2);
+      tbox.appendChild(wrap);
+      dz.classList.add('has-photo');
+      lbl.className = 'photo-label ok';
+      var n = photoStore[ctx].filter(Boolean).length;
+      lbl.textContent = n + ' photo' + (n>1?'s':'') + ' chargee' + (n>1?'s':'');
+    };
+    reader.readAsDataURL(file);
+  });
+  clearTimeout(window._ocrTimer);
+  window._ocrTimer = setTimeout(function(){ lancerOCR(ctx); }, 500);
+}
+
+function removePhoto(ctx, idx){
+  photoStore[ctx][idx] = null;
+  var el = document.querySelector('#'+ctx+'-thumbs [data-idx="'+idx+'"]');
+  if(el) el.remove();
+  var n = photoStore[ctx].filter(Boolean).length;
+  var lbl = document.getElementById(ctx+'-ph-lbl');
+  var dz  = document.getElementById(ctx+'-dz');
+  if(n === 0){
+    dz.classList.remove('has-photo');
+    lbl.className = 'photo-label';
+    lbl.textContent = 'Cliquer, glisser-deposer ou prendre une photo';
+    document.getElementById(ctx+'-ocr').classList.remove('visible');
+  } else {
+    lbl.textContent = n + ' photo' + (n>1?'s':'') + ' chargee' + (n>1?'s':'');
+  }
+}
+
+function clearPhotos(ctx){
+  photoStore[ctx] = [];
+  document.getElementById(ctx+'-thumbs').innerHTML = '';
+  document.getElementById(ctx+'-ocr').classList.remove('visible');
+  var lbl = document.getElementById(ctx+'-ph-lbl');
+  var dz  = document.getElementById(ctx+'-dz');
+  dz.classList.remove('has-photo');
+  lbl.className = 'photo-label';
+  lbl.textContent = 'Cliquer, glisser-deposer ou prendre une photo';
+}
+
+function openModal(src){
+  var m = document.createElement('div');
+  m.className = 'photo-modal';
+  var img = document.createElement('img');
+  img.src = src; img.alt = 'Fiche terrain';
+  m.appendChild(img);
+  m.onclick = function(){ document.body.removeChild(m); };
+  document.body.appendChild(m);
+}
+
+function resetApiKey(){
+  sessionStorage.removeItem('anthropic_key');
+  alert('Cle API effacee. Elle sera redemandee au prochain usage.');
+}
+
+function getApiKey(){
+  var k = (sessionStorage.getItem('anthropic_key')||'').trim();
+  if(!k){
+    k = prompt('Entrez votre cle API Anthropic (sk-ant-...):\nObtenez-la sur console.anthropic.com');
+    if(!k){ return null; }
+    k = k.trim();
+    if(!k.startsWith('sk-')){
+      alert('Cle invalide. Elle doit commencer par sk-ant-...');
+      return null;
+    }
+    sessionStorage.setItem('anthropic_key', k);
+  }
+  return k;
+}
+
+function buildPrompt(ctx){
+  if(ctx === 'diag'){
+    return 'Tu es un assistant EPS. Cette image est une fiche observation terrain remplie a la main.\nExtrait pour chaque eleve : prenom, score OBS-01 (0-10), OBS-02 (0-10), OBS-03 (0-10).\nSi degre lettre : A=2, B=6, C=9. Valeur illisible = null.\nReponds UNIQUEMENT en JSON sans markdown :\n{"eleves":[{"prenom":"NOM","obs1":X,"obs2":Y,"obs3":Z}]}';
+  }
+  return 'Tu es un assistant EPS. Cette image est une fiche evaluation sommative course de haies remplie a la main.\nExtrait pour chaque eleve : prenom, genre (G/F), chrono DI en secondes decimales, score technique DI sur 12, chrono ES en secondes decimales, score technique ES sur 12, bonus appreciation 0 ou 1.\nFormat secondes : 22"5 => 22.5. Valeur illisible = null.\nReponds UNIQUEMENT en JSON sans markdown :\n{"eleves":[{"prenom":"NOM","genre":"G","chrono_di":null,"tech_di":null,"chrono_es":null,"tech_es":null,"appre":0}]}';
+}
+
+function lancerOCR(ctx){
+  var photos = photoStore[ctx].filter(Boolean);
+  if(!photos.length) return;
+  var panel    = document.getElementById(ctx+'-ocr');
+  var status   = document.getElementById(ctx+'-ocr-st');
+  var applyBtn = document.getElementById(ctx+'-apply-btn');
+  panel.classList.add('visible');
+  status.classList.remove('hidden');
+  status.className = 'ocr-status loading';
+  status.textContent = 'Lecture en cours... (' + photos.length + ' photo' + (photos.length>1?'s':'') + ')';
+  applyBtn.disabled = true;
+  document.getElementById(ctx+'-ocr-lines').innerHTML = '';
+
+  var apiKey = getApiKey();
+  if(!apiKey){
+    status.className = 'ocr-status error';
+    status.textContent = 'Cle API absente. Impossible de lire la fiche.';
+    return;
+  }
+
+  var imgBlocks = photos.map(function(p){
+    return { type:'image', source:{ type:'base64', media_type: p.mime, data: p.b64 }};
+  });
+  imgBlocks.push({ type:'text', text: buildPrompt(ctx) });
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-allow-browser': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      messages: [{ role:'user', content: imgBlocks }]
+    })
+  })
+  .then(function(r){
+    if(r.status === 401){
+      sessionStorage.removeItem('anthropic_key');
+      throw new Error('Cle API incorrecte. Supprimee. Relancez et entrez une cle valide.');
+    }
+    if(r.status === 429) throw new Error('Trop de requetes. Attendez 30 secondes puis relancez.');
+    if(!r.ok) return r.text().then(function(t){ throw new Error('Erreur HTTP ' + r.status); });
+    return r.json();
+  })
+  .then(function(data){
+    if(data.error) throw new Error(data.error.message || 'Erreur API');
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('');
+    text = text.replace(/```json|```/g,'').trim();
+    var parsed;
+    try { parsed = JSON.parse(text); } catch(e){ throw new Error('Reponse non JSON: ' + text.substring(0,80)); }
+    if(!parsed.eleves || !parsed.eleves.length) throw new Error('Aucun eleve detecte dans la fiche.');
+    ocrData[ctx] = parsed.eleves;
+    renderOCRLines(ctx, parsed.eleves);
+    status.className = 'ocr-status done';
+    status.textContent = parsed.eleves.length + ' eleve' + (parsed.eleves.length>1?'s':'') + ' reconnu' + (parsed.eleves.length>1?'s':'') + '. Verifiez puis cliquez sur Appliquer.';
+    applyBtn.disabled = false;
+  })
+  .catch(function(err){
+    status.className = 'ocr-status error';
+    status.textContent = 'Erreur : ' + err.message;
+    console.error('OCR:', err);
+  });
+}
+
+function renderOCRLines(ctx, eleves){
+  var container = document.getElementById(ctx+'-ocr-lines');
+  container.innerHTML = '';
+  if(ctx === 'diag'){
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;font-size:.7rem;font-weight:700;color:var(--gris);padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:4px;';
+    hdr.innerHTML = '<span>Prenom</span><span style="text-align:center">OBS-01</span><span style="text-align:center">OBS-02</span><span style="text-align:center">OBS-03</span>';
+    container.appendChild(hdr);
+    eleves.forEach(function(e, i){
+      var row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--border);';
+      row.innerHTML =
+        '<input class="ocr-val" id="oc-d-p-'+i+'" value="'+(e.prenom||'')+'" style="text-align:left;">'+
+        '<input class="ocr-val" id="oc-d-o1-'+i+'" type="number" min="0" max="10" step="0.5" value="'+(e.obs1!=null?e.obs1:'')+'" placeholder="-">'+
+        '<input class="ocr-val" id="oc-d-o2-'+i+'" type="number" min="0" max="10" step="0.5" value="'+(e.obs2!=null?e.obs2:'')+'" placeholder="-">'+
+        '<input class="ocr-val" id="oc-d-o3-'+i+'" type="number" min="0" max="10" step="0.5" value="'+(e.obs3!=null?e.obs3:'')+'" placeholder="-">';
+      container.appendChild(row);
+    });
+  } else {
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'display:grid;grid-template-columns:1.5fr .45fr .9fr .9fr .9fr .9fr .7fr;gap:4px;font-size:.68rem;font-weight:700;color:var(--gris);padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:4px;';
+    hdr.innerHTML = '<span>Prenom</span><span>G/F</span><span>DI Chrono</span><span>DI T/12</span><span>ES Chrono</span><span>ES T/12</span><span>Bonus</span>';
+    container.appendChild(hdr);
+    eleves.forEach(function(e, i){
+      var row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1.5fr .45fr .9fr .9fr .9fr .9fr .7fr;gap:4px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--border);';
+      row.innerHTML =
+        '<input class="ocr-val" id="oc-e-p-'+i+'" value="'+(e.prenom||'')+'" style="text-align:left;">'+
+        '<select class="ocr-val" id="oc-e-g-'+i+'"><option value="G"'+(e.genre==='G'?' selected':'')+'>G</option><option value="F"'+(e.genre==='F'?' selected':'')+'>F</option></select>'+
+        '<input class="ocr-val" id="oc-e-cd-'+i+'" type="number" step="0.1" value="'+(e.chrono_di!=null?e.chrono_di:'')+'" placeholder="s">'+
+        '<input class="ocr-val" id="oc-e-td-'+i+'" type="number" step="1" value="'+(e.tech_di!=null?e.tech_di:'')+'" placeholder="/12">'+
+        '<input class="ocr-val" id="oc-e-ce-'+i+'" type="number" step="0.1" value="'+(e.chrono_es!=null?e.chrono_es:'')+'" placeholder="s">'+
+        '<input class="ocr-val" id="oc-e-te-'+i+'" type="number" step="1" value="'+(e.tech_es!=null?e.tech_es:'')+'" placeholder="/12">'+
+        '<select class="ocr-val" id="oc-e-ap-'+i+'"><option value="0"'+(e.appre===0?' selected':'')+'>0</option><option value="1"'+(e.appre===1?' selected':'')+'>+1</option></select>';
+      container.appendChild(row);
+    });
+  }
+}
+
+function applyOCR(ctx){
+  if(!ocrData[ctx]) return;
+  var eleves = ocrData[ctx];
+  if(ctx === 'diag'){
+    var rows = document.getElementById('form-rows');
+    while(rows.children.length < eleves.length) addRow();
+    eleves.forEach(function(e, i){
+      var row = rows.children[i]; if(!row) return;
+      row.querySelector('.prenom').value = (document.getElementById('oc-d-p-'+i)||{value:e.prenom||''}).value;
+      row.querySelector('.obs1').value   = (document.getElementById('oc-d-o1-'+i)||{value:e.obs1!=null?e.obs1:''}).value;
+      row.querySelector('.obs2').value   = (document.getElementById('oc-d-o2-'+i)||{value:e.obs2!=null?e.obs2:''}).value;
+      row.querySelector('.obs3').value   = (document.getElementById('oc-d-o3-'+i)||{value:e.obs3!=null?e.obs3:''}).value;
+    });
+    rows.style.outline = '2px solid #86efac';
+    setTimeout(function(){ rows.style.outline=''; }, 1400);
+    var st = document.getElementById('diag-ocr-st');
+    st.className='ocr-status done';
+    st.textContent = eleves.length + ' eleve' + (eleves.length>1?'s':'') + ' transfere' + (eleves.length>1?'s':'') + '. Cliquez sur Analyser.';
+  } else {
+    var rows2 = document.getElementById('es-rows');
+    rows2.innerHTML = ''; esCount = 0;
+    eleves.forEach(function(e, i){
+      addEsRow(
+        (document.getElementById('oc-e-p-'+i)||{value:e.prenom||''}).value,
+        (document.getElementById('oc-e-cd-'+i)||{value:e.chrono_di||''}).value,
+        (document.getElementById('oc-e-td-'+i)||{value:e.tech_di||''}).value,
+        (document.getElementById('oc-e-ce-'+i)||{value:e.chrono_es||''}).value,
+        (document.getElementById('oc-e-g-'+i)||{value:e.genre||'G'}).value,
+        (document.getElementById('oc-e-te-'+i)||{value:e.tech_es||''}).value,
+        parseInt((document.getElementById('oc-e-ap-'+i)||{value:'0'}).value)||0
+      );
+    });
+    document.querySelectorAll('#es-rows .es-row').forEach(function(r){
+      var c = r.querySelector('.chrono-es'); if(c) autoCalcRow(c);
+    });
+    rows2.style.outline = '2px solid #86efac';
+    setTimeout(function(){ rows2.style.outline=''; }, 1400);
+    var st2 = document.getElementById('es-ocr-st');
+    st2.className='ocr-status done';
+    st2.textContent = eleves.length + ' eleve' + (eleves.length>1?'s':'') + ' transfere' + (eleves.length>1?'s':'') + '. Cliquez sur Calculer.';
+  }
+}
+
+// ── Init ──────────────────────────────────────────
+(function init(){
+  document.getElementById("date-eval").value=new Date().toISOString().split("T")[0];
+  document.getElementById("es-date").value=new Date().toISOString().split("T")[0];
+  initRows(12);
+  for(var i=0;i<12;i++)addEsRow();
+  buildBaremeAll();
+  updateSlider();
+})();
+
+
+// ══════════════════════════════════════════════════
+// MODE NUIT
+// ══════════════════════════════════════════════════
+function toggleNuit(){
+  document.body.classList.toggle('dark');
+  var on=document.body.classList.contains('dark');
+  localStorage.setItem('dark_mode',on?'1':'0');
+  document.getElementById('btn-nuit').textContent=on?'🌙':'☀️';
+}
+(function(){
+  if(localStorage.getItem('dark_mode')==='1'){
+    document.body.classList.add('dark');
+    var b=document.getElementById('btn-nuit');
+    if(b) b.textContent='🌙';
+  }
+})();
+
+// ══════════════════════════════════════════════════
+// SAUVEGARDE AUTOMATIQUE
+// ══════════════════════════════════════════════════
+var _saveTimer=null;
+function sauvegardeAuto(){
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(function(){
+    if(!window._esData||!window._esData.length) return;
+    try{
+      var snap={ts:Date.now(),data:window._esData,
+        classe:document.getElementById('es-classe').value,
+        niveau:document.getElementById('es-niveau').value,
+        date:document.getElementById('es-date').value};
+      localStorage.setItem('es_session_current',JSON.stringify(snap));
+      var ind=document.getElementById('save-indicator');
+      ind.classList.add('show');
+      setTimeout(function(){ind.classList.remove('show');},1800);
+    }catch(e){console.error('Save:',e);}
+  },600);
+}
+
+// Restaurer session au chargement
+(function(){
+  try{
+    var raw=localStorage.getItem('es_session_current');
+    if(!raw) return;
+    var snap=JSON.parse(raw);
+    if(!snap||!snap.data||!snap.data.length) return;
+    var ago=Math.round((Date.now()-snap.ts)/60000);
+    if(ago>720) return; // ignorer si > 12h
+    var ok=confirm('Session precedente : '+snap.data.length+' eleves (il y a '+ago+' min). Restaurer ?');
+    if(!ok) return;
+    window._esData=snap.data;
+    if(snap.classe) document.getElementById('es-classe').value=snap.classe;
+    if(snap.niveau) document.getElementById('es-niveau').value=snap.niveau;
+    if(snap.date)   document.getElementById('es-date').value=snap.date;
+    // Remplir la grille
+    var rows=document.getElementById('es-rows');
+    rows.innerHTML='';esCount=0;
+    snap.data.forEach(function(e){
+      addEsRow(e.prenom,e.chronoDI||'',e.techDI||'',e.chronoES||'',e.genre||'G',e.techES||'',e.c3?e.c3.bonus:0);
+    });
+    afficherResultats(snap.data);
+    switchMode('es');
+  }catch(e){console.error('Restore:',e);}
+})();
+
+// ══════════════════════════════════════════════════
+// GRAPHIQUE PROGRESSION DI → ES (Canvas)
+// ══════════════════════════════════════════════════
+function renderProgressChart(sorted){
+  var canvas=document.getElementById('progress-chart');
+  if(!canvas) return;
+  var ctx=canvas.getContext('2d');
+  var n=sorted.length;
+  var W=Math.max(500, n*52+60);
+  canvas.width=W; canvas.height=240;
+  ctx.clearRect(0,0,W,240);
+  var maxNote=20, pad={l:40,r:20,t:20,b:50};
+  var chartH=240-pad.t-pad.b;
+  var barW=18, gap=34, x0=pad.l;
+
+  // Axes
+  ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=0.5;
+  [0,5,10,15,20].forEach(function(v){
+    var y=pad.t+chartH*(1-v/maxNote);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+    ctx.fillStyle='#9ca3af';ctx.font='10px Arial';ctx.textAlign='right';
+    ctx.fillText(v,pad.l-4,y+3);
+  });
+
+  sorted.forEach(function(e,i){
+    var x=x0+i*(barW*2+gap);
+    // DI estimé (basé sur chrono DI si disponible, sinon null)
+    var diNote=null;
+    if(e.chronoDI&&e.genre){
+      diNote=noteC1(e.chronoDI,e.genre);
+      if(e.techDI!=null) diNote=Math.round((diNote+noteC2(e.techDI))*0.8*10)/10;
+    }
+    var esNote=e.note;
+
+    // Barre DI
+    if(diNote!==null){
+      var hdi=chartH*(diNote/maxNote);
+      ctx.fillStyle='#9ca3af';
+      ctx.fillRect(x,pad.t+chartH-hdi,barW,hdi);
+    }
+
+    // Barre ES
+    var hes=chartH*(esNote/maxNote);
+    var prog=(diNote!==null)?(esNote>diNote):(true);
+    ctx.fillStyle=prog?'#2563a8':'#dc2626';
+    ctx.fillRect(x+barW+3,pad.t+chartH-hes,barW,hes);
+
+    // Flèche de progression
+    if(diNote!==null&&esNote!==diNote){
+      var ydi=pad.t+chartH-chartH*(diNote/maxNote);
+      var yes=pad.t+chartH-hes;
+      var cx=x+barW+1.5;
+      ctx.strokeStyle=prog?'#16a34a':'#dc2626';
+      ctx.lineWidth=1.2;
+      ctx.setLineDash([3,2]);
+      ctx.beginPath();ctx.moveTo(cx,ydi);ctx.lineTo(cx,yes);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Valeur ES
+    ctx.fillStyle=mentionColor(esNote);
+    ctx.font='bold 10px Arial';ctx.textAlign='center';
+    ctx.fillText(esNote,x+barW+3+barW/2,pad.t+chartH-hes-5);
+
+    // Prénom (incliné)
+    ctx.save();
+    ctx.translate(x+barW+1,pad.t+chartH+14);
+    ctx.rotate(-0.5);
+    ctx.fillStyle='#374151';ctx.font='10px Arial';ctx.textAlign='right';
+    ctx.fillText(e.prenom.substring(0,9),0,0);
+    ctx.restore();
+  });
+
+  // Ligne moyenne
+  var moy=Math.round(sorted.reduce(function(s,e){return s+(e.note||0);},0)/sorted.length*10)/10;
+  var ymoy=pad.t+chartH*(1-moy/maxNote);
+  ctx.strokeStyle='#d97706';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
+  ctx.beginPath();ctx.moveTo(pad.l,ymoy);ctx.lineTo(W-pad.r,ymoy);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#d97706';ctx.font='bold 10px Arial';ctx.textAlign='left';
+  ctx.fillText('Moy '+moy,pad.l+4,ymoy-4);
+}
+
+// ══════════════════════════════════════════════════
+// FICHE INDIVIDUELLE ÉLÈVE
+// ══════════════════════════════════════════════════
+var _ficheIdx=0;
+var _comments={};
+
+function ouvrirFiche(idx){
+  _ficheIdx=idx;
+  renderFiche();
+  document.getElementById('fiche-overlay').classList.remove('hidden');
+}
+
+function closeFiche(evt){
+  if(!evt||evt.target===document.getElementById('fiche-overlay'))
+    document.getElementById('fiche-overlay').classList.add('hidden');
+}
+
+function ficheNav(dir){
+  if(!window._sortedData) return;
+  _ficheIdx=(_ficheIdx+dir+window._sortedData.length)%window._sortedData.length;
+  renderFiche();
+}
+
+function renderFiche(){
+  var d=window._sortedData;
+  if(!d||!d.length) return;
+  var e=d[_ficheIdx];
+  document.getElementById('fiche-titre').textContent=
+    e.prenom+' — Rang '+(e.rang||(_ficheIdx+1))+'/'+d.length;
+
+  var diNote=null;
+  if(e.chronoDI&&e.genre) diNote=noteC1(e.chronoDI,e.genre);
+  if(diNote!==null&&e.techDI!=null) diNote=Math.round((diNote+noteC2(e.techDI))*0.8*10)/10;
+
+  var delta=diNote!==null?Math.round((e.note-diNote)*10)/10:null;
+  var deltaCls=delta===null?'neu':delta>0?'pos':'neg';
+  var deltaStr=delta===null?'DI non disponible':(delta>0?('Progression + '+delta+' pts'):('Regression '+delta+' pts'));
+
+  var commentKey=e.prenom;
+  var body=document.getElementById('fiche-body');
+
+  var rows1='<div class="fiche-row">'+
+    '<div class="fiche-cell"><div class="fc-val">'+(diNote!==null?(diNote+'<small>/20</small>'):'—')+'</div><div class="fc-lbl">Note DI estimee</div></div>'+
+    '<div class="fiche-cell"><div class="fc-val" style="color:'+mentionColor(e.note)+'">'+e.note+'<small>/20</small></div><div class="fc-lbl">Note ES</div></div>'+
+    '<div class="fiche-cell"><div class="fc-val" style="font-size:.95rem">'+e.mention+'</div><div class="fc-lbl">Mention</div></div>'+
+  '</div>';
+
+  var rows2='<div class="fiche-row">'+
+    '<div class="fiche-cell"><div class="fc-val">'+(e.chronoES?(e.chronoES+'"'):'—')+'</div><div class="fc-lbl">Chrono ES</div></div>'+
+    '<div class="fiche-cell"><div class="fc-val">'+(e.c1!==null?(e.c1+'/10'):'—')+'</div><div class="fc-lbl">C1 Performance</div></div>'+
+    '<div class="fiche-cell"><div class="fc-val">'+(e.c2!==null?(e.c2+'/10'):'—')+'</div><div class="fc-lbl">C2 Technique</div></div>'+
+  '</div>';
+
+  var rows3='<div class="fiche-row">'+
+    '<div class="fiche-cell"><div class="fc-val">'+(e.chronoDI?(e.chronoDI+'"'):'—')+'</div><div class="fc-lbl">Chrono DI</div></div>'+
+    '<div class="fiche-cell"><div class="fc-val">'+(e.techDI!=null?(e.techDI+'/12'):'—')+'</div><div class="fc-lbl">Tech DI /12</div></div>'+
+    '<div class="fiche-cell"><div class="fc-val">'+e.c3.bonus+'/4</div><div class="fc-lbl">Bonus C3</div></div>'+
+  '</div>';
+
+  body.innerHTML='<div class="fiche-delta '+deltaCls+'">'+deltaStr+'</div>'+rows1+rows2+rows3+
+    '<div><label style="font-size:.8rem;font-weight:600;">Commentaire terrain</label></div>'+
+    '<div id="fiche-comment-wrap"></div>'+
+    '<div class="btn-row"><button class="btn btn-outline btn-sm" onclick="imprimerFiche()">Imprimer</button></div>';
+
+  var ta=document.createElement('textarea');
+  ta.className='fiche-comment';
+  ta.placeholder='Observations, circonstances...';
+  ta.value=_comments[commentKey]||'';
+  ta.onchange=function(){_comments[commentKey]=this.value;sauvegardeAuto();};
+  document.getElementById('fiche-comment-wrap').appendChild(ta);
+}
+function saveFicheComment(prenom,val){_comments[prenom]=val;sauvegardeAuto();}
+
+function imprimerFiche(){
+  var modal=document.querySelector('.fiche-modal');
+  var w=window.open('','_blank');
+  w.document.write('<html><head><title>Fiche élève</title><style>body{font-family:Arial,sans-serif;font-size:13px;padding:20px}</style></head><body>');
+  w.document.write(modal.innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
+}
+
+// Commentaire inline
+function toggleComment(btn){
+  var bubble=btn.nextElementSibling;
+  if(bubble) bubble.classList.toggle('hidden');
+}
+function saveComment(el){
+  var row=el.closest('.es-row');
+  if(!row) return;
+  var prenom=row.querySelector('.prenom');
+  if(prenom&&prenom.value) _comments[prenom.value]=el.textContent;
+  sauvegardeAuto();
+}
+
+// ══════════════════════════════════════════════════
+// HISTORIQUE DES CYCLES
+// ══════════════════════════════════════════════════
+function sauvegarderSession(){
+  if(!window._esData||!window._esData.length){alert('Calculer les notes dabord.');return;}
+  var nom=prompt('Nom de cette session (ex: Cycle 1 3ème B, Janvier 2026) :');
+  if(!nom) return;
+  try{
+    var raw=localStorage.getItem('es_historique')||'[]';
+    var hist=JSON.parse(raw);
+    var moy=Math.round(window._esData.filter(function(e){return e.note!==null;}).reduce(function(s,e){return s+e.note;},0)/window._esData.filter(function(e){return e.note!==null;}).length*10)/10;
+    hist.push({
+      id:Date.now(),nom:nom,
+      classe:document.getElementById('es-classe').value||'',
+      date:document.getElementById('es-date').value||'',
+      moy:moy,nb:window._esData.length,
+      data:window._esData
+    });
+    localStorage.setItem('es_historique',JSON.stringify(hist));
+    renderHistorique();
+    alert('Session '+nom+' sauvegardee !');
+  }catch(e){alert('Erreur sauvegarde : '+e.message);}
+}
+
+function renderHistorique(){
+  try{
+    var raw=localStorage.getItem('es_historique')||'[]';
+    var hist=JSON.parse(raw);
+    var div=document.getElementById('hist-liste');
+    if(!hist.length){
+      div.innerHTML='<p style="color:#6b7280;text-align:center;padding:20px;">Aucune session sauvegardée.</p>';
+      document.getElementById('hist-compare-panel').style.display='none';
+      return;
+    }
+    var html='';
+    hist.forEach(function(h,i){
+      html+='<div class="hist-item">'+
+        '<div><strong>'+h.nom+'</strong><br><span class="hist-meta">'+h.classe+' &middot; '+h.date+' &middot; '+h.nb+' élèves</span></div>'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+          '<span style="font-size:1.1rem;font-weight:800;color:'+mentionColor(h.moy)+'">'+h.moy+'/20</span>'+
+          '<button class="btn btn-outline btn-sm" onclick="chargerSession('+i+')">Charger</button>'+
+          '<button class="btn btn-sm" style="background:var(--lrouge);color:var(--rouge);" onclick="supprimerSession('+i+')">✕</button>'+
+        '</div></div>';
+    });
+    div.innerHTML=html;
+    if(hist.length>1) renderHistCompare(hist);
+  }catch(e){console.error(e);}
+}
+
+function chargerSession(i){
+  try{
+    var hist=JSON.parse(localStorage.getItem('es_historique')||'[]');
+    var h=hist[i];if(!h) return;
+    window._esData=h.data;
+    var rows=document.getElementById('es-rows');rows.innerHTML='';esCount=0;
+    h.data.forEach(function(e){addEsRow(e.prenom,e.chronoDI||'',e.techDI||'',e.chronoES||'',e.genre||'G',e.techES||'',e.c3?e.c3.bonus:0);});
+    afficherResultats(h.data);
+    switchMode('es');
+  }catch(e){alert('Erreur chargement : '+e.message);}
+}
+
+function supprimerSession(i){
+  if(!confirm('Supprimer cette session ?')) return;
+  try{
+    var hist=JSON.parse(localStorage.getItem('es_historique')||'[]');
+    hist.splice(i,1);
+    localStorage.setItem('es_historique',JSON.stringify(hist));
+    renderHistorique();
+  }catch(e){}
+}
+
+function renderHistCompare(hist){
+  var panel=document.getElementById('hist-compare-panel');
+  panel.style.display='block';
+  // Tableau comparatif simple
+  var tbl='<table><thead><tr><th>Session</th><th>Classe</th><th>Date</th><th>Élèves</th><th>Moyenne /20</th></tr></thead><tbody>';
+  var maxMoy=Math.max.apply(null,hist.map(function(h){return h.moy;}));
+  hist.forEach(function(h){
+    tbl+='<tr>'+
+      '<td><strong>'+h.nom+'</strong></td><td>'+h.classe+'</td><td>'+h.date+'</td><td>'+h.nb+'</td>'+
+      '<td><span style="font-size:1rem;font-weight:800;color:'+mentionColor(h.moy)+'">'+h.moy+'</span>'+
+        (h.moy===maxMoy?' 🏆':'')+
+      '</td></tr>';
+  });
+  tbl+='</tbody></table>';
+  document.getElementById('hist-compare-table').innerHTML=tbl;
+}
+
+function exportAllCSV(){
+  try{
+    var hist=JSON.parse(localStorage.getItem('es_historique')||'[]');
+    if(!hist.length){alert('Aucune session à exporter.');return;}
+    var hdr=['Session','Classe','Date','Prénom','Genre','Chrono ES','C1/10','Tech ES/12','C2/10','C3/4','NOTE /20','Mention'];
+    var rows=[hdr];
+    hist.forEach(function(h){
+      h.data.forEach(function(e){
+        rows.push([h.nom,h.classe,h.date,e.prenom,e.genre,e.chronoES||'',e.c1||'',e.techES||'',e.c2||'',e.c3?e.c3.bonus:0,e.note||'',e.mention||'']);
+      });
+    });
+    var csv='﻿'+rows.map(function(r){return r.join(';');}).join('\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='historique_ES-HAI.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  }catch(e){alert('Erreur export : '+e.message);}
+}
+
+// ══════════════════════════════════════════════════
+// SIGNATURE CANVAS
+// ══════════════════════════════════════════════════
+var _sigDrawing=false, _sigSaved=false;
+(function initSig(){
+  var canvas=document.getElementById('sig-canvas');
+  if(!canvas) return;
+  var ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;ctx.lineCap='round';
+  function getPos(e){
+    var r=canvas.getBoundingClientRect();
+    var src=(e.touches&&e.touches[0])||e;
+    return{x:src.clientX-r.left,y:src.clientY-r.top};
+  }
+  canvas.addEventListener('mousedown', function(e){_sigDrawing=true;var p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+  canvas.addEventListener('mousemove', function(e){if(!_sigDrawing)return;var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+  canvas.addEventListener('mouseup',   function(){_sigDrawing=false;});
+  canvas.addEventListener('touchstart',function(e){e.preventDefault();_sigDrawing=true;var p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+  canvas.addEventListener('touchmove', function(e){e.preventDefault();if(!_sigDrawing)return;var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
+  canvas.addEventListener('touchend',  function(){_sigDrawing=false;});
+})();
+
+function clearSig(){
+  var canvas=document.getElementById('sig-canvas');
+  var ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  canvas.classList.remove('signed');
+  _sigSaved=false;
+  document.getElementById('sig-status').textContent='';
+}
+function saveSig(){
+  var canvas=document.getElementById('sig-canvas');
+  canvas.classList.add('signed');
+  _sigSaved=true;
+  var d=new Date();
+  document.getElementById('sig-status').textContent='Signé le '+d.toLocaleDateString('fr-FR')+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ══════════════════════════════════════════════════
+// QR CODE (génération Canvas maison)
+// ══════════════════════════════════════════════════
+function genererQR(){
+  if(!window._esData||!window._esData.length){alert('Calculer les notes dabord.');return;}
+  var payload={v:1,d:window._esData.slice(0,20).map(function(e){return{p:e.prenom,n:e.note,m:e.mention.substring(0,2)};})};
+  var str=JSON.stringify(payload);
+  var b64=btoa(unescape(encodeURIComponent(str)));
+  var url=window.location.href.split('#')[0]+'#es='+b64;
+  document.getElementById('qr-url').textContent=url.substring(0,120)+'...';
+  // QR simplifié — afficher un datamatrix basique (URL raccourcie)
+  var canvas=document.getElementById('qr-canvas');
+  var ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,200,200);
+  ctx.fillStyle='#1a3a5c';
+  ctx.font='bold 11px Arial';ctx.textAlign='center';
+  ctx.fillText('Partagez ce lien :',100,30);
+  ctx.font='9px Arial';
+  // URL découpée en lignes
+  var lines=[];
+  for(var i=0;i<Math.min(url.length,120);i+=28) lines.push(url.substring(i,i+28));
+  lines.forEach(function(l,i){ctx.fillText(l,100,55+i*13);});
+  ctx.fillStyle='#2563a8';
+  ctx.fillRect(40,155,120,30);
+  ctx.fillStyle='#fff';ctx.font='bold 12px Arial';
+  ctx.fillText(window._esData.length+' élèves | Moy. '+Math.round(window._esData.reduce(function(s,e){return s+(e.note||0);},0)/window._esData.length*10)/10+'/20',100,174);
+  document.getElementById('qr-overlay').classList.remove('hidden');
+  window._qrUrl=url;
+}
+function closeQR(){document.getElementById('qr-overlay').classList.add('hidden');}
+function copyQRUrl(){if(window._qrUrl){navigator.clipboard.writeText(window._qrUrl).then(function(){alert('Lien copie !');}).catch(function(){alert(window._qrUrl);});}}
+
+// ══════════════════════════════════════════════════
+// EXPORT PDF (via impression ciblée)
+// ══════════════════════════════════════════════════
+function exporterPDF(){
+  if(!window._esData||!window._esData.length){alert("Calculer les notes dabord.");return;}
+  var d=new Date();
+  var sorted=window._sortedData||window._esData;
+  var etab=document.getElementById("es-etab").value||"—";
+  var classe=document.getElementById("es-classe").value||"—";
+  var dateES=document.getElementById("es-date").value||d.toLocaleDateString("fr-FR");
+  var ens=document.getElementById("es-enseignant").value||"—";
+  var form=document.getElementById("es-formateur").value||"BOUARGANE";
+  var valides=sorted.filter(function(e){return e.note!==null;});
+  var moy=valides.length?Math.round(valides.reduce(function(s,e){return s+e.note;},0)/valides.length*10)/10:0;
+  var rows=valides.map(function(e,i){
+    return "<tr><td>"+(i+1)+"</td><td>"+e.prenom+"</td><td>"+e.genre+"</td>"+
+      "<td>"+(e.c1||"—")+"/10</td><td>"+(e.c2||"—")+"/10</td>"+
+      "<td>"+e.c3.bonus+"/4</td><td><strong>"+e.note+"/20</strong></td>"+
+      "<td>"+e.mention+"</td></tr>";
+  }).join("");
+  var sigCanvas=document.getElementById("sig-canvas");
+  var sigImg=_sigSaved?"<img src=\""+sigCanvas.toDataURL()+"\" style=\"height:50px\">":"<div style=\"height:50px;border:1px solid #ccc;width:200px;\"></div>";
+  var html="<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\">"+
+    "<title>Releve de notes "+classe+"</title>"+
+    "<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}"+
+    "h1{font-size:16px;text-align:center;margin-bottom:4px}"+
+    ".hg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:11px}"+
+    "table{width:100%;border-collapse:collapse;margin:12px 0}"+
+    "th,td{border:1px solid #ccc;padding:5px 7px;text-align:left}"+
+    "th{background:#1a3a5c;color:#fff}"+
+    "tr:nth-child(even){background:#f3f4f6}"+
+    ".footer{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:40px;font-size:11px}"+
+    ".sig-box{border-top:1px solid #ccc;padding-top:8px;margin-top:16px}"+
+    "@media print{button{display:none}}</style></head><body>"+
+    "<h1>Releve de notes — Evaluation Sommative<br>Course de Haies · ES-HAI</h1>"+
+    "<div class=\"hg\">"+
+      "<div><strong>Etablissement :</strong> "+etab+"</div>"+
+      "<div><strong>Classe :</strong> "+classe+"</div>"+
+      "<div><strong>Date ES :</strong> "+dateES+"</div>"+
+      "<div><strong>Enseignant :</strong> "+ens+"</div>"+
+      "<div><strong>Formateur :</strong> "+form+"</div>"+
+      "<div><strong>Moyenne classe :</strong> "+moy+"/20</div>"+
+    "</div>"+
+    "<table><thead><tr><th>Rang</th><th>Prenom / NOM</th><th>G</th>"+
+    "<th>C1/10</th><th>C2/10</th><th>C3/4</th><th>NOTE /20</th><th>Mention</th></tr></thead>"+
+    "<tbody>"+rows+"</tbody></table>"+
+    "<div class=\"footer\">"+
+      "<div class=\"sig-box\"><strong>Signature</strong><br>"+sigImg+"</div>"+
+      "<div class=\"sig-box\"><strong>Visa formateur</strong><br><div style=\"height:50px;border:1px solid #ccc;\"></div></div>"+
+    "</div>"+
+    "<p style=\"font-size:10px;color:#6b7280;margin-top:16px;text-align:center;\">Ref : DNB B.O. n5 / 2012 · Bareme CRMEF 2024 · ADP 2A26 · CRMEF Souss-Massa / Inezgane</p>"+
+    "<button onclick=\"window.print()\" style=\"margin:10px auto;display:block;padding:8px 20px;background:#1a3a5c;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;\">Imprimer / Enregistrer PDF</button>"+
+    "</body></html>";
+  var w=window.open("","_blank");
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+}
+// ══════════════════════════════════════════════════
+// SAISIE VOCALE
+// ══════════════════════════════════════════════════
+var _recog=null;
+function demarrerVocal(input){
+  if(!('SpeechRecognition' in window||'webkitSpeechRecognition' in window)){
+    alert('Saisie vocale non supportee. Utilisez Chrome ou Edge mobile.');return;
+  }
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  _recog=new SR();
+  _recog.lang='fr-FR';_recog.interimResults=false;_recog.maxAlternatives=1;
+  _recog.onresult=function(e){
+    var texte=e.results[0][0].transcript.toLowerCase().trim();
+    // Convertir : "22 secondes 5", "22 virgule 5", "22.5" → 22.5
+    texte=texte.replace(/secondes?/g,'').replace(/virgule/,'.').replace(/,/,'.').replace(/\s+/g,'');
+    var val=parseFloat(texte);
+    if(!isNaN(val)&&val>0&&val<200){
+      input.value=val;
+      input.dispatchEvent(new Event('input'));
+      input.style.background='#dcfce7';
+      setTimeout(function(){input.style.background='';},1000);
+    } else {
+      input.style.background='#fee2e2';
+      setTimeout(function(){input.style.background='';},1000);
+    }
+  };
+  _recog.onerror=function(){input.style.background='#fee2e2';setTimeout(function(){input.style.background='';},1000);};
+  _recog.start();
+  input.placeholder='🎤 Parlez...';
+  input.style.background='#fef3c7';
+  _recog.onend=function(){input.placeholder='s';input.style.background='';};
+}
+
+
+</script>
+</body>
+</html>
